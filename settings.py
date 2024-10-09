@@ -8,6 +8,11 @@ PLAYER_SCALE = 2.5;
 FPS = 60;
 ANIMATION_COOLDOWN = 100
 
+#Game Variables and Physics
+GRAVITY = 0.90
+VEL_LIMIT = 10
+FLOOR = 500
+
 #Colors
 MPURPLE = (100, 20, 135);
 BLACK = (0, 0, 0);

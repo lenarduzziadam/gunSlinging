@@ -17,15 +17,23 @@ movingRight = False
 #draws background
 def drawBG():
     screen.fill(BLACK)
+    
+    pygame.draw.line(screen, RED, (0,FLOOR), (SCREEN_WIDTH, 400))
 
 #Gunslinger player class
 class Gunslinger(pygame.sprite.Sprite):
     def __init__(self, charType1, charType2, x, y, scale, speed):
         pygame.sprite.Sprite.__init__(self)
+        self.alive = True
+        
         self.speed = speed
         self.charType1 = charType1
         self.charType2 = charType2
         self.direction = 1
+        self.jump = False
+        self.velY = 0
+        self.velX = 0
+        
         self.flip = False
         self.animation_list = []
         self.frameIndex = 0
@@ -66,7 +74,8 @@ class Gunslinger(pygame.sprite.Sprite):
         #resets movment variables
         dx = 0
         dy = 0
-        #assign movments
+        
+        #assign movments for left and right
         if movingLeft:
             dx = -self.speed
             self.flip = True
@@ -76,6 +85,22 @@ class Gunslinger(pygame.sprite.Sprite):
             dx = self.speed
             self.flip = False
             self.direction = 1
+            
+        #assign jump movements
+        if self.jump == True:
+            self.velY = -20
+            self.jump = False
+        
+        #changes rate of change applies gravity    
+        self.velY += GRAVITY
+        
+        if self.velY > 10:
+            self.velY
+            
+        dy += self.velY
+        
+        if self.rect.bottom + dy > FLOOR:
+            dy = FLOOR - self.rect.bottom
             
         self.rect.x += dx
         self.rect.y += dy
@@ -124,12 +149,13 @@ while run:
     enemy.draw()
     
     #updates player actions
-    if movingLeft or movingRight:
-        player.updateActions(1)#1 : walk
-    else: 
-        player.updateActions(0)#0: idle)
+    if player.alive:
+        if movingLeft or movingRight:
+            player.updateActions(1)#1 : walk
+        else: 
+            player.updateActions(0)#0: idle)
     
-    player.move(movingLeft, movingRight)
+        player.move(movingLeft, movingRight)
 
     for event in pygame.event.get():
         #quitting game
@@ -148,6 +174,11 @@ while run:
                 movingLeft = True        
             if event.key == pygame.K_d:
                 movingRight = True
+            
+            if event.key == pygame.K_0 and player.alive:
+                player.jump = True
+            if event.key == pygame.K_f and player.alive:
+                player.jump = True
             
             if event.key == pygame.K_ESCAPE:
                 run = False
