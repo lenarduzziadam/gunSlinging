@@ -152,6 +152,7 @@ while run:
     if player.alive:
         if movingLeft or movingRight:
             player.updateActions(1)#1 : walk
+            
         else: 
             player.updateActions(0)#0: idle)
     
@@ -175,9 +176,9 @@ while run:
             if event.key == pygame.K_d:
                 movingRight = True
             
-            if event.key == pygame.K_0 and player.alive:
+            if event.key == pygame.K_SPACE and player.alive:
                 player.jump = True
-            if event.key == pygame.K_f and player.alive:
+            if event.key == pygame.K_RETURN and player.alive:
                 player.jump = True
             
             if event.key == pygame.K_ESCAPE:
