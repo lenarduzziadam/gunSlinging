@@ -27,11 +27,15 @@ class Gunslinger(pygame.sprite.Sprite):
         
         self.direction = 1
         self.flip = False
+        self.animation_list = []
+        self.index = 0
         
-        img = pygame.image.load(f'{self.charType}.png')
+        for i in range(4):
+            img = pygame.image.load(f'{self.charType}_{i}.png')
+            img = pygame.transform.scale(img, (int(img.get_width() * scale) , (int(img.get_height() * scale))))
+            self.animation_list.append(img)
 
-        self.image = pygame.transform.scale(img, (int(img.get_width() * scale) , (int(img.get_height() * scale))))
-
+        self.image = self.animation_list[self.index]
         self.rect = self.image.get_rect()
         self.rect.center = (x, y)
         
@@ -62,8 +66,8 @@ class Gunslinger(pygame.sprite.Sprite):
 
 
 #initilization of players
-player = Gunslinger('CowboyIMG/Cowboy4_idle with gun_0', p_startX, p_startY, PLAYER_SCALE, PLAYER_SPEED)
-enemy = Gunslinger('EnemyIMG/Cowboy2_idle with gun_0',400, 250, PLAYER_SCALE, PLAYER_SPEED)
+player = Gunslinger('CowboyIMG/Cowboy4_idle with gun', p_startX, p_startY, PLAYER_SCALE, PLAYER_SPEED)
+enemy = Gunslinger('EnemyIMG/Cowboy2_idle with gun',400, 250, PLAYER_SCALE, PLAYER_SPEED)
 
 
 run = True
