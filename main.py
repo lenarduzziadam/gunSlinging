@@ -20,22 +20,44 @@ def drawBG():
 
 #Gunslinger player class
 class Gunslinger(pygame.sprite.Sprite):
-    def __init__(self, charType, x, y, scale, speed):
+    def __init__(self, charType1, charType2, x, y, scale, speed):
         pygame.sprite.Sprite.__init__(self)
         self.speed = speed
-        self.charType = charType
-        
+        self.charType1 = charType1
+        self.charType2 = charType2
         self.direction = 1
         self.flip = False
         self.animation_list = []
-        self.index = 0
+        self.frameIndex = 0
         
+        #action value to indicate animation loop that plays
+        self.action = 0
+        
+        self.updateTime = pygame.time.get_ticks()
+        
+        tempList = []
+       
+        #handles idle animations
         for i in range(4):
-            img = pygame.image.load(f'{self.charType}_{i}.png')
+            img = pygame.image.load(f'{self.charType1}_idle {self.charType2}_{i}.png')
             img = pygame.transform.scale(img, (int(img.get_width() * scale) , (int(img.get_height() * scale))))
-            self.animation_list.append(img)
+            tempList.append(img)
+            
+        #appends idle tempList to overall animation list
+        self.animation_list.append(tempList)
+        
+        tempList = []    
+        #handles walking animation_list
+        for i in range(4):
+            img = pygame.image.load(f'{self.charType1}_walk {self.charType2}_{i}.png')
+            img = pygame.transform.scale(img, (int(img.get_width() * scale) , (int(img.get_height() * scale))))
+            tempList.append(img)
+        
+        #appends walking tempList to overall animation list
+            self.animation_list.append(tempList)
 
-        self.image = self.animation_list[self.index]
+        #calls specific frame index based on action value 
+        self.image = self.animation_list[self.action][self.frameIndex]
         self.rect = self.image.get_rect()
         self.rect.center = (x, y)
         
@@ -57,7 +79,26 @@ class Gunslinger(pygame.sprite.Sprite):
             
         self.rect.x += dx
         self.rect.y += dy
-        
+    
+    def updateAnimations(self):
+        #update image based on current fram
+        self.image = self.animation_list[self.action][self.frameIndex]
+        #checks time since last update updates if enough time passed
+        if pygame.time.get_ticks() - self.updateTime > ANIMATION_COOLDOWN:
+            self.updateTime = pygame.time.get_ticks()
+            self.frameIndex += 1
+            
+        #if animation runs out reset back to start
+        if self.frameIndex >= len(self.animation_list[self.action]):
+            self.frameIndex = 0;
+            
+    def updateActions(self, newAction):
+        #check if new action different from previous
+        if newAction != self.action:
+            self.action = newAction
+            #reset animation loop to cater for new action
+            self.frameIndex = 0
+            self.updateTime = pygame.time.get_ticks()
         
     def draw(self):
         screen.blit(pygame.transform.flip(self.image, self.flip, False), self.rect)
@@ -66,8 +107,8 @@ class Gunslinger(pygame.sprite.Sprite):
 
 
 #initilization of players
-player = Gunslinger('CowboyIMG/Cowboy4_idle with gun', p_startX, p_startY, PLAYER_SCALE, PLAYER_SPEED)
-enemy = Gunslinger('EnemyIMG/Cowboy2_idle with gun',400, 250, PLAYER_SCALE, PLAYER_SPEED)
+player = Gunslinger('CowboyIMG/Cowboy4', 'with gun', p_startX, p_startY, PLAYER_SCALE, PLAYER_SPEED)
+enemy = Gunslinger('EnemyIMG/Cowboy2','with gun',400, 250, PLAYER_SCALE, PLAYER_SPEED)
 
 
 run = True
@@ -77,8 +118,17 @@ while run:
     
     drawBG()
     
+    player.updateAnimations()
     player.draw()
+    enemy.updateAnimations()
     enemy.draw()
+    
+    #updates player actions
+    if movingLeft or movingRight:
+        player.updateActions(1)#1 : walk
+    else: 
+        player.updateActions(0)#0: idle)
+    
     player.move(movingLeft, movingRight)
 
     for event in pygame.event.get():

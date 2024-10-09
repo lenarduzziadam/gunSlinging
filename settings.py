@@ -6,6 +6,7 @@ PLAYER_SCALE = 2.5;
 
 #Framerates
 FPS = 60;
+ANIMATION_COOLDOWN = 100
 
 #Colors
 MPURPLE = (100, 20, 135);
