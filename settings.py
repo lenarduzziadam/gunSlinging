@@ -33,6 +33,7 @@ GROUND_LAYER = 1;
 #SPEED Classifications
 PLAYER_SPEED = 2;
 ENEMY_SPEED = 1;
+BULLET_VELOCITY = (0,-350)
 
 #Player SPAWN POINT:
 p_startX = 200

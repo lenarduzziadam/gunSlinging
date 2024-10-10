@@ -18,7 +18,29 @@ movingRight = False
 def drawBG():
     screen.fill(BLACK)
     
-    pygame.draw.line(screen, RED, (0,FLOOR), (SCREEN_WIDTH, 400))
+    pygame.draw.line(screen, RED, (0,FLOOR), (SCREEN_WIDTH, 300))
+    
+class Bullet(pygame.sprite.Sprite):
+    def __init__(self, charType, pos, damage, scale):
+        self.charType = charType
+        BULLET = pygame.image.load(f'{charType}_{i}.png')
+        BULLET = pygame.transform.scale(BULLET, (int(BULLET.get_width() * scale) , (int(img.get_height() * scale))))
+        self.image = BULLET
+        self.rect = self.image.get_rect(center = pos)
+        self.pos = pygame.math.Vector2(pos)
+        
+        self.vel = pygame.math.Vector2(0, -350)
+        self.damage = damage
+        self.scale = scale
+        
+        
+    def update(self, dt):
+        
+        self.pos += self.vel * dt
+        self.rect.center = self.pos
+        
+        if self.rect.bottom <= 0:
+            self.kill()
 
 #Gunslinger player class
 class Gunslinger(pygame.sprite.Sprite):
@@ -152,6 +174,9 @@ while run:
     if player.alive:
         if movingLeft or movingRight:
             player.updateActions(1)#1 : walk
+        
+        #else if attacking: #create boolean value for attacking
+            
             
         else: 
             player.updateActions(0)#0: idle)
