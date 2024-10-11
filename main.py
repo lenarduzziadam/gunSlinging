@@ -1,3 +1,4 @@
+import os
 import pygame
 from settings import * 
 
@@ -23,13 +24,20 @@ def drawBG():
 class Bullet(pygame.sprite.Sprite):
     def __init__(self, charType, pos, damage, scale):
         self.charType = charType
-        BULLET = pygame.image.load(f'{charType}_{i}.png')
-        BULLET = pygame.transform.scale(BULLET, (int(BULLET.get_width() * scale) , (int(img.get_height() * scale))))
-        self.image = BULLET
+        self.animation_list = []
+        self.frameIndex = 0
+        
+        tempList = []
+        for i in range(4):
+            BULLET = pygame.image.load(f'{charType}_{i}.png')
+            BULLET = pygame.transform.scale(BULLET, (int(BULLET.get_width() * scale) , (int(BULLET.get_height() * scale))))
+            self.image = BULLET
+            tempList.append()
+            
         self.rect = self.image.get_rect(center = pos)
         self.pos = pygame.math.Vector2(pos)
         
-        self.vel = pygame.math.Vector2(0, -350)
+        self.vel = pygame.math.Vector2(BULLET_VELOCITY)
         self.damage = damage
         self.scale = scale
         
@@ -44,13 +52,12 @@ class Bullet(pygame.sprite.Sprite):
 
 #Gunslinger player class
 class Gunslinger(pygame.sprite.Sprite):
-    def __init__(self, charType1, charType2, x, y, scale, speed):
+    def __init__(self, charType, x, y, scale, speed):
         pygame.sprite.Sprite.__init__(self)
         self.alive = True
         
         self.speed = speed
-        self.charType1 = charType1
-        self.charType2 = charType2
+        self.charType = charType
         self.direction = 1
         self.jump = False
         self.velY = 0
@@ -65,25 +72,22 @@ class Gunslinger(pygame.sprite.Sprite):
         
         self.updateTime = pygame.time.get_ticks()
         
-        tempList = []
-       
-        #handles idle animations
-        for i in range(4):
-            img = pygame.image.load(f'{self.charType1}_idle {self.charType2}_{i}.png')
-            img = pygame.transform.scale(img, (int(img.get_width() * scale) , (int(img.get_height() * scale))))
-            tempList.append(img)
+        #load all images for players
+        animationTypes = ['Idle', 'Walk', 'Jump/Normal', 'Jump/Gun']
+        
+        for animation in animationTypes:
+            tempList = []
             
-        #appends idle tempList to overall animation list
-        self.animation_list.append(tempList)
+            #counts number of files in folder
+            frameNum = len(os.listdir(f'IMG/{self.charType}/{animation}'))
         
-        tempList = []    
-        #handles walking animation_list
-        for i in range(4):
-            img = pygame.image.load(f'{self.charType1}_walk {self.charType2}_{i}.png')
-            img = pygame.transform.scale(img, (int(img.get_width() * scale) , (int(img.get_height() * scale))))
-            tempList.append(img)
-        
-        #appends walking tempList to overall animation list
+            #handles idle animations
+            for i in range(frameNum - 1):
+                img = pygame.image.load(f'IMG/{self.charType}/{animation}/{i}.png')
+                img = pygame.transform.scale(img, (int(img.get_width() * scale) , (int(img.get_height() * scale))))
+                tempList.append(img)
+                
+            #appends idle tempList to overall animation list
             self.animation_list.append(tempList)
 
         #calls specific frame index based on action value 
@@ -154,8 +158,8 @@ class Gunslinger(pygame.sprite.Sprite):
 
 
 #initilization of players
-player = Gunslinger('CowboyIMG/Cowboy4', 'with gun', p_startX, p_startY, PLAYER_SCALE, PLAYER_SPEED)
-enemy = Gunslinger('EnemyIMG/Cowboy2','with gun',400, 250, PLAYER_SCALE, PLAYER_SPEED)
+player = Gunslinger('Cowboy', p_startX, p_startY, PLAYER_SCALE, PLAYER_SPEED)
+enemy = Gunslinger('Gangster',400, 250, PLAYER_SCALE, PLAYER_SPEED)
 
 
 run = True
