@@ -30,13 +30,24 @@ class Bullet(pygame.sprite.Sprite):
         super().__init__()
         self.speed = speed
         self.image = bulletIMG
+        
+        # Flip the bullet horizontally if the direction is negative (facing left)
+        if player.direction == -1:  #KEY: -1 is left, 1 is right
+            self.image = pygame.transform.flip(self.image, True, False)
+            
         self.rect = self.image.get_rect()
         self.rect.center = (x, y)
         self.direction = direction
         
+        # Create a mask for the bullet based on its image
+        self.mask = pygame.mask.from_surface(self.image)
+        
     def update(self):
-        self.rect.x += self.speed * self.direction
+        self.rect.x += (self.speed * self.direction)
 
+        #checks if bullet off screen
+        if self.rect.right < 0 or self.rect.left > SCREEN_WIDTH:
+            self.kill()
 
 #creates sprite groups        
 bulletGroup = pygame.sprite.Group()
@@ -129,6 +140,13 @@ class Gunslinger(pygame.sprite.Sprite):
             
         self.rect.x += dx
         self.rect.y += dy
+        
+    def shoot(self, int1, int2):
+        self.int1 = int1
+        self.int2 = int2
+        
+        bullet = Bullet(self.rect.centerx + (self.int1 * self.rect.size[0] * self.direction), self.rect.centery + (self.int2 * self.rect.size[0]), self.direction, BULLET_SPEED)
+        bulletGroup.add(bullet)
     
     def updateAnimations(self):
         #update image based on current fram
@@ -184,15 +202,12 @@ while run:
     #updates player actions
     if player.alive:
         if shoot:
-            bullet = Bullet(player.rect.centerx, player.rect.centery, player.direction, BULLET_SPEED)
-            bulletGroup.add(bullet)
+            player.shoot(X_ADJUST_BULLET, Y_ADJUST_BULLET)
         if player.inAir:
             player.updateActions(2)
         elif movingLeft or movingRight:
             player.updateActions(1)#1 : walk
             
-        #else if attacking: #create boolean value for attacking   
-          
         else: 
             player.updateActions(0)#0: idle)
     
@@ -218,6 +233,7 @@ while run:
             
             if event.key == pygame.K_SPACE:
                 shoot = True
+        
             if event.key == pygame.K_RETURN and player.alive:
                 player.jump = True
             
