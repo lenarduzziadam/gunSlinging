@@ -4,6 +4,8 @@ SCREEN_HEIGHT = SCREEN_WIDTH * 0.8;
 TILESIZE = 32;
 PLAYER_SCALE = 2.5;
 
+BULLET_SCALE = 0.02;
+
 #Framerates
 FPS = 60;
 ANIMATION_COOLDOWN = 100
@@ -33,7 +35,10 @@ GROUND_LAYER = 1;
 #SPEED Classifications
 PLAYER_SPEED = 2;
 ENEMY_SPEED = 1;
-BULLET_VELOCITY = (0,-350)
+
+BULLET_VELOCITY = (0,-350);
+BULLET_SPEED = 10;
+CANON_SPEED = 5;
 
 #Player SPAWN POINT:
 p_startX = 200
@@ -82,3 +87,5 @@ world_map = [
 
 tile_size = 50
 WIDTH, HEIGHT = 1000, len(world_map) * tile_size
+
+

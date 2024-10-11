@@ -11,10 +11,14 @@ pygame.display.set_caption('Gunslingers Vengence')
 #framerates
 clock = pygame.time.Clock()
 
-#moving booleans
+#moving/action booleans
 movingLeft = False
 movingRight = False
+shoot = False
 
+#images to load:
+bulletIMG = pygame.image.load('IMG/Bullet/Small/0.png').convert_alpha()
+bulletIMG = pygame.transform.scale(bulletIMG, (int(bulletIMG.get_width() * BULLET_SCALE) , (int(bulletIMG.get_height() * BULLET_SCALE))))
 #draws background
 def drawBG():
     screen.fill(BLACK)
@@ -22,33 +26,21 @@ def drawBG():
     pygame.draw.line(screen, RED, (0,FLOOR), (SCREEN_WIDTH, 300))
     
 class Bullet(pygame.sprite.Sprite):
-    def __init__(self, charType, pos, damage, scale):
-        self.charType = charType
-        self.animation_list = []
-        self.frameIndex = 0
+    def __init__(self, x, y, direction, speed):
+        super().__init__()
+        self.speed = speed
+        self.image = bulletIMG
+        self.rect = self.image.get_rect()
+        self.rect.center = (x, y)
+        self.direction = direction
         
-        tempList = []
-        for i in range(4):
-            BULLET = pygame.image.load(f'{charType}_{i}.png')
-            BULLET = pygame.transform.scale(BULLET, (int(BULLET.get_width() * scale) , (int(BULLET.get_height() * scale))))
-            self.image = BULLET
-            tempList.append()
-            
-        self.rect = self.image.get_rect(center = pos)
-        self.pos = pygame.math.Vector2(pos)
+    def update(self):
+        self.rect.x += self.speed * self.direction
+
+
+#creates sprite groups        
+bulletGroup = pygame.sprite.Group()
         
-        self.vel = pygame.math.Vector2(BULLET_VELOCITY)
-        self.damage = damage
-        self.scale = scale
-        
-        
-    def update(self, dt):
-        
-        self.pos += self.vel * dt
-        self.rect.center = self.pos
-        
-        if self.rect.bottom <= 0:
-            self.kill()
 
 #Gunslinger player class
 class Gunslinger(pygame.sprite.Sprite):
@@ -59,7 +51,10 @@ class Gunslinger(pygame.sprite.Sprite):
         self.speed = speed
         self.charType = charType
         self.direction = 1
+        
         self.jump = False
+        self.inAir = True
+        
         self.velY = 0
         self.velX = 0
         
@@ -83,7 +78,7 @@ class Gunslinger(pygame.sprite.Sprite):
         
             #handles idle animations
             for i in range(frameNum - 1):
-                img = pygame.image.load(f'IMG/{self.charType}/{animation}/{i}.png')
+                img = pygame.image.load(f'IMG/{self.charType}/{animation}/{i}.png').convert_alpha()
                 img = pygame.transform.scale(img, (int(img.get_width() * scale) , (int(img.get_height() * scale))))
                 tempList.append(img)
                 
@@ -95,6 +90,8 @@ class Gunslinger(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.center = (x, y)
         
+        # Create the mask for the player based on the current image
+        self.mask = pygame.mask.from_surface(self.image)
         
     def move(self, movingLeft, movingRight):
         #resets movment variables
@@ -113,10 +110,11 @@ class Gunslinger(pygame.sprite.Sprite):
             self.direction = 1
             
         #assign jump movements
-        if self.jump == True:
+        if self.jump == True and self.inAir == False:
             self.velY = -20
             self.jump = False
-        
+            self.inAir = True
+            
         #changes rate of change applies gravity    
         self.velY += GRAVITY
         
@@ -127,6 +125,7 @@ class Gunslinger(pygame.sprite.Sprite):
         
         if self.rect.bottom + dy > FLOOR:
             dy = FLOOR - self.rect.bottom
+            self.inAir = False
             
         self.rect.x += dx
         self.rect.y += dy
@@ -142,6 +141,9 @@ class Gunslinger(pygame.sprite.Sprite):
         #if animation runs out reset back to start
         if self.frameIndex >= len(self.animation_list[self.action]):
             self.frameIndex = 0;
+            
+        # Update the mask with the new image for pixel-perfect collision
+        self.mask = pygame.mask.from_surface(self.image)
             
     def updateActions(self, newAction):
         #check if new action different from previous
@@ -169,19 +171,28 @@ while run:
     
     drawBG()
     
+    
     player.updateAnimations()
     player.draw()
     enemy.updateAnimations()
     enemy.draw()
     
+    #updates and draws groups
+    bulletGroup.update()
+    bulletGroup.draw(screen)
+    
     #updates player actions
     if player.alive:
-        if movingLeft or movingRight:
+        if shoot:
+            bullet = Bullet(player.rect.centerx, player.rect.centery, player.direction, BULLET_SPEED)
+            bulletGroup.add(bullet)
+        if player.inAir:
+            player.updateActions(2)
+        elif movingLeft or movingRight:
             player.updateActions(1)#1 : walk
-        
-        #else if attacking: #create boolean value for attacking
             
-            
+        #else if attacking: #create boolean value for attacking   
+          
         else: 
             player.updateActions(0)#0: idle)
     
@@ -205,8 +216,8 @@ while run:
             if event.key == pygame.K_d:
                 movingRight = True
             
-            if event.key == pygame.K_SPACE and player.alive:
-                player.jump = True
+            if event.key == pygame.K_SPACE:
+                shoot = True
             if event.key == pygame.K_RETURN and player.alive:
                 player.jump = True
             
@@ -224,7 +235,10 @@ while run:
             if event.key == pygame.K_a:
                 movingLeft = False
             if event.key == pygame.K_d:
-                movingRight = False        
+                movingRight = False   
+            
+            if event.key == pygame.K_SPACE:
+                shoot = False     
     
     
     
