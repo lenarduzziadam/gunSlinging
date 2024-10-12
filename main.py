@@ -19,11 +19,33 @@ shoot = False
 #images to load:
 bulletIMG = pygame.image.load('IMG/Bullet/Small/0.png').convert_alpha()
 bulletIMG = pygame.transform.scale(bulletIMG, (int(bulletIMG.get_width() * BULLET_SCALE) , (int(bulletIMG.get_height() * BULLET_SCALE))))
+
+cannonIMG = pygame.image.load('IMG/Bullet/Canon/0.png').convert_alpha()
+cannonIMG = pygame.transform.scale(cannonIMG, (int(cannonIMG.get_width() * CANNON_SCALE),(int(cannonIMG.get_height() * CANNON_SCALE))))
 #draws background
 def drawBG():
     screen.fill(BLACK)
     
     pygame.draw.line(screen, RED, (0,FLOOR), (SCREEN_WIDTH, 300))
+    
+class Cannonball(pygame.sprite.Sprite):
+    def __init__(self, x, y, direction, speed):
+        super().__init__()
+        self.timer = CANNON_TIMER
+        self.velY = CANNON_VELOCITY
+        self.speed = speed
+        self.image = cannonIMG
+        
+        # Flip the bullet horizontally if the direction is negative (facing left)
+        if player.direction == -1:  #KEY: -1 is left, 1 is right
+            self.image = pygame.transform.flip(self.image, True, False)
+            
+        self.rect = self.image.get_rect()
+        self.rect.center = (x, y)
+        self.direction = direction
+        
+        # Create a mask for the bullet based on its image
+        self.mask = pygame.mask.from_surface(self.image)
     
 class Bullet(pygame.sprite.Sprite):
     def __init__(self, x, y, direction, speed):
@@ -115,6 +137,8 @@ class Gunslinger(pygame.sprite.Sprite):
                     #continue
                 else:
                     img = pygame.transform.scale(img, (int(img.get_width() * scale) , (int(img.get_height() * scale))))
+                
+                #appends images to templist
                 tempList.append(img)
                 
             #appends idle tempList to overall animation list
@@ -196,7 +220,12 @@ class Gunslinger(pygame.sprite.Sprite):
             
         #if animation runs out reset back to start
         if self.frameIndex >= len(self.animation_list[self.action]):
-            self.frameIndex = 0;
+            
+            if self.action == 5: #checks for Death animation loop and ends it at last animation
+                self.frameIndex = len(self.animation_list[self.action]) - 1
+                
+            else:
+                self.frameIndex = 0;
             
         # Update the mask with the new image for pixel-perfect collision
         self.mask = pygame.mask.from_surface(self.image)
