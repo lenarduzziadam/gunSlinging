@@ -60,6 +60,9 @@ class Gunslinger(pygame.sprite.Sprite):
         self.alive = True
         
         self.speed = speed
+        
+        self.shootCooldown = 0
+        
         self.charType = charType
         self.direction = 1
         
@@ -79,7 +82,7 @@ class Gunslinger(pygame.sprite.Sprite):
         self.updateTime = pygame.time.get_ticks()
         
         #load all images for players
-        animationTypes = ['Idle', 'Walk', 'Jump/Normal', 'Jump/Gun']
+        animationTypes = ['Idle', 'Walk', 'Jump/Normal', 'Jump/Gun', 'Shoot']
         
         for animation in animationTypes:
             tempList = []
@@ -104,6 +107,14 @@ class Gunslinger(pygame.sprite.Sprite):
         # Create the mask for the player based on the current image
         self.mask = pygame.mask.from_surface(self.image)
         
+        
+    def update(self):
+        self.updateAnimations()
+        #update shootCooldown
+        if self.shootCooldown > 0:
+            self.shootCooldown -= 1;
+            
+            
     def move(self, movingLeft, movingRight):
         #resets movment variables
         dx = 0
@@ -145,8 +156,10 @@ class Gunslinger(pygame.sprite.Sprite):
         self.int1 = int1
         self.int2 = int2
         
-        bullet = Bullet(self.rect.centerx + (self.int1 * self.rect.size[0] * self.direction), self.rect.centery + (self.int2 * self.rect.size[0]), self.direction, BULLET_SPEED)
-        bulletGroup.add(bullet)
+        if self.shootCooldown == 0:
+            self.shootCooldown = BULLET_COOLDOWN
+            bullet = Bullet(self.rect.centerx + (self.int1 * self.rect.size[0] * self.direction), self.rect.centery + (self.int2 * self.rect.size[0]), self.direction, BULLET_SPEED)
+            bulletGroup.add(bullet)
     
     def updateAnimations(self):
         #update image based on current fram
@@ -190,7 +203,7 @@ while run:
     drawBG()
     
     
-    player.updateAnimations()
+    player.update()
     player.draw()
     enemy.updateAnimations()
     enemy.draw()
@@ -201,13 +214,18 @@ while run:
     
     #updates player actions
     if player.alive:
-        if shoot:
-            player.shoot(X_ADJUST_BULLET, Y_ADJUST_BULLET)
-        if player.inAir:
-            player.updateActions(2)
-        elif movingLeft or movingRight:
-            player.updateActions(1)#1 : walk
             
+        if player.inAir:
+            if shoot:
+                player.updateActions(3)
+                player.shoot(X_ADJUST_BULLET, Y_ADJUST_BULLET)
+            else:
+                player.updateActions(2)
+        elif shoot:
+            player.updateActions(4)
+            player.shoot(X_ADJUST_BULLET, Y_ADJUST_BULLET)        
+        elif movingLeft or movingRight:
+            player.updateActions(1)#1 : walk   
         else: 
             player.updateActions(0)#0: idle)
     

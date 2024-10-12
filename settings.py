@@ -12,6 +12,7 @@ Y_ADJUST_BULLET = 0.25
 #Framerates
 FPS = 60;
 ANIMATION_COOLDOWN = 100
+BULLET_COOLDOWN = 69
 
 #Game Variables and Physics
 GRAVITY = 0.70
