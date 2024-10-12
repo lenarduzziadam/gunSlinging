@@ -6,8 +6,15 @@ PLAYER_SCALE = 2.5;
 
 BULLET_SCALE = 0.02;
 
-X_ADJUST_BULLET = 0.35 
+X_ADJUST_BULLET = 0.485 
 Y_ADJUST_BULLET = 0.25
+
+#Capcities (Health/Ammo, etc...)
+PLAYER_HEALTH = 100
+ENEMY_HEALTH = 25
+
+PLAYER_AMMO = 100
+ENEMY_AMMO = 20
 
 #Framerates
 FPS = 60;
@@ -17,7 +24,7 @@ BULLET_COOLDOWN = 69
 #Game Variables and Physics
 GRAVITY = 0.70
 VEL_LIMIT = 10
-FLOOR = 500
+FLOOR = 350
 
 #Colors
 MPURPLE = (100, 20, 135);

@@ -49,19 +49,35 @@ class Bullet(pygame.sprite.Sprite):
         if self.rect.right < 0 or self.rect.left > SCREEN_WIDTH:
             self.kill()
 
+        #collision checks
+        if pygame.sprite.spritecollide(player, bulletGroup, False):
+            if player.alive:
+                player.health -= 5
+                self.kill()
+                
+        if pygame.sprite.spritecollide(enemy, bulletGroup, False):
+            if enemy.alive:
+                enemy.health -= 5
+                self.kill()
+            
 #creates sprite groups        
 bulletGroup = pygame.sprite.Group()
         
 
 #Gunslinger player class
 class Gunslinger(pygame.sprite.Sprite):
-    def __init__(self, charType, x, y, scale, speed):
+    def __init__(self, charType, x, y, scale, speed, ammo, health):
         pygame.sprite.Sprite.__init__(self)
         self.alive = True
         
         self.speed = speed
         
         self.shootCooldown = 0
+        self.ammo = ammo
+        self.startAmmo = ammo
+        
+        self.health = health
+        self.maxHealth = self.health
         
         self.charType = charType
         self.direction = 1
@@ -156,10 +172,13 @@ class Gunslinger(pygame.sprite.Sprite):
         self.int1 = int1
         self.int2 = int2
         
-        if self.shootCooldown == 0:
+        if self.shootCooldown == 0 and self.ammo > 0:
             self.shootCooldown = BULLET_COOLDOWN
             bullet = Bullet(self.rect.centerx + (self.int1 * self.rect.size[0] * self.direction), self.rect.centery + (self.int2 * self.rect.size[0]), self.direction, BULLET_SPEED)
             bulletGroup.add(bullet)
+            
+            #ammo reduction
+            self.ammo -= 1
     
     def updateAnimations(self):
         #update image based on current fram
@@ -175,7 +194,9 @@ class Gunslinger(pygame.sprite.Sprite):
             
         # Update the mask with the new image for pixel-perfect collision
         self.mask = pygame.mask.from_surface(self.image)
-            
+    
+
+        
     def updateActions(self, newAction):
         #check if new action different from previous
         if newAction != self.action:
@@ -183,6 +204,13 @@ class Gunslinger(pygame.sprite.Sprite):
             #reset animation loop to cater for new action
             self.frameIndex = 0
             self.updateTime = pygame.time.get_ticks()
+
+    def checkAlive(self):
+        if self.health <= 0:
+            self.health = 0
+            self.speed = 0
+            self.alive = False
+            self.updateActions()
         
     def draw(self):
         screen.blit(pygame.transform.flip(self.image, self.flip, False), self.rect)
@@ -191,8 +219,8 @@ class Gunslinger(pygame.sprite.Sprite):
 
 
 #initilization of players
-player = Gunslinger('Cowboy', p_startX, p_startY, PLAYER_SCALE, PLAYER_SPEED)
-enemy = Gunslinger('Gangster',400, 250, PLAYER_SCALE, PLAYER_SPEED)
+player = Gunslinger('Cowboy', p_startX, p_startY, PLAYER_SCALE, PLAYER_SPEED, PLAYER_AMMO, PLAYER_HEALTH)
+enemy = Gunslinger('Gangster',400, 250, PLAYER_SCALE, PLAYER_SPEED, ENEMY_AMMO, ENEMY_HEALTH)
 
 
 run = True
@@ -217,15 +245,19 @@ while run:
             
         if player.inAir:
             if shoot:
-                player.updateActions(3)
+                #TODO: Does not seem to run figure out why
+                player.updateActions(3)#3:Jumping shooting animation
                 player.shoot(X_ADJUST_BULLET, Y_ADJUST_BULLET)
             else:
                 player.updateActions(2)
-        elif shoot:
-            player.updateActions(4)
-            player.shoot(X_ADJUST_BULLET, Y_ADJUST_BULLET)        
+                
+        elif shoot and not (movingLeft or movingRight):
+            player.updateActions(4)#4: standing/walking shooting animation
+            player.shoot(X_ADJUST_BULLET, Y_ADJUST_BULLET)  
+                  
         elif movingLeft or movingRight:
-            player.updateActions(1)#1 : walk   
+            player.updateActions(1)#1 : walk  
+             
         else: 
             player.updateActions(0)#0: idle)
     
