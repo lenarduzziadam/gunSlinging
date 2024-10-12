@@ -98,7 +98,7 @@ class Gunslinger(pygame.sprite.Sprite):
         self.updateTime = pygame.time.get_ticks()
         
         #load all images for players
-        animationTypes = ['Idle', 'Walk', 'Jump/Normal', 'Jump/Gun', 'Shoot']
+        animationTypes = ['Idle', 'Walk', 'Jump/Normal', 'Jump/Gun', 'Shoot', 'Death']
         
         for animation in animationTypes:
             tempList = []
@@ -109,7 +109,12 @@ class Gunslinger(pygame.sprite.Sprite):
             #handles idle animations
             for i in range(frameNum - 1):
                 img = pygame.image.load(f'IMG/{self.charType}/{animation}/{i}.png').convert_alpha()
-                img = pygame.transform.scale(img, (int(img.get_width() * scale) , (int(img.get_height() * scale))))
+               
+                if animation == 'Death':
+                    img = pygame.transform.scale(img, (int(img.get_width() * DEATH_SCALE) , (int(img.get_height() * DEATH_SCALE))))
+                    #continue
+                else:
+                    img = pygame.transform.scale(img, (int(img.get_width() * scale) , (int(img.get_height() * scale))))
                 tempList.append(img)
                 
             #appends idle tempList to overall animation list
@@ -126,6 +131,7 @@ class Gunslinger(pygame.sprite.Sprite):
         
     def update(self):
         self.updateAnimations()
+        self.checkAlive()
         #update shootCooldown
         if self.shootCooldown > 0:
             self.shootCooldown -= 1;
@@ -210,7 +216,8 @@ class Gunslinger(pygame.sprite.Sprite):
             self.health = 0
             self.speed = 0
             self.alive = False
-            self.updateActions()
+            self.updateActions(5)
+            
         
     def draw(self):
         screen.blit(pygame.transform.flip(self.image, self.flip, False), self.rect)
@@ -233,7 +240,8 @@ while run:
     
     player.update()
     player.draw()
-    enemy.updateAnimations()
+    
+    enemy.update()
     enemy.draw()
     
     #updates and draws groups
