@@ -84,7 +84,7 @@ class Bullet(pygame.sprite.Sprite):
             
 #creates sprite groups        
 bulletGroup = pygame.sprite.Group()
-        
+cannonGroup = pygame.sprite.Group()        
 
 #Gunslinger player class
 class Gunslinger(pygame.sprite.Sprite):
@@ -95,6 +95,7 @@ class Gunslinger(pygame.sprite.Sprite):
         self.speed = speed
         
         self.shootCooldown = 0
+        
         self.ammo = ammo
         self.startAmmo = ammo
         
@@ -209,7 +210,14 @@ class Gunslinger(pygame.sprite.Sprite):
             
             #ammo reduction
             self.ammo -= 1
-    
+            
+    def cannon(self, int1, int2):
+        self.int1 = int1
+        self.int2 = int2
+        
+        cannonball = Cannonball(self.rect.centerx + (self.int1 * self.rect.size[0] * self.direction), self.rect.centery + (self.int2 * self.rect.size[0]), self.direction, CANON_SPEED)
+        cannonGroup.add(cannonball)
+        
     def updateAnimations(self):
         #update image based on current fram
         self.image = self.animation_list[self.action][self.frameIndex]
@@ -320,6 +328,9 @@ while run:
             
             if event.key == pygame.K_SPACE:
                 shoot = True
+            
+            if event.key == pygame.K_q:
+                cannon = True
         
             if event.key == pygame.K_RETURN and player.alive:
                 player.jump = True
@@ -339,6 +350,9 @@ while run:
                 movingLeft = False
             if event.key == pygame.K_d:
                 movingRight = False   
+                
+            if event.key == pygame.K_q:
+                cannon = False
             
             if event.key == pygame.K_SPACE:
                 shoot = False     
