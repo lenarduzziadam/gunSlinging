@@ -53,6 +53,24 @@ class Cannonball(pygame.sprite.Sprite):
         
         # Create a mask for the bullet based on its image
         self.mask = pygame.mask.from_surface(self.image)
+        
+    def update(self):
+        self.velY += GRAVITY
+        dx = self.direction * self.speed
+        dy = self.velY
+        
+        if self.rect.bottom + dy > FLOOR:
+            dy = FLOOR - self.rect.bottom
+            self.speed = self.speed/2
+            
+        #checks if bullet off screen
+        if self.rect.right < 0 or self.rect.left > SCREEN_WIDTH:
+            self.kill()
+            
+        #updates cannonball position
+        self.rect.x += dx
+        self.rect.y += dy
+            
     
 class Bullet(pygame.sprite.Sprite):
     def __init__(self, x, y, direction, speed):
