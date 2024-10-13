@@ -35,6 +35,48 @@ def drawBG():
     
     pygame.draw.line(screen, RED, (0,FLOOR), (SCREEN_WIDTH, 300))
     
+class Explosion(pygame.sprite.Sprite):
+    def __init__(self, x, y, direction, scale):
+        super().__init__()
+        
+        self.scale = scale
+        self.explosion_list = []
+        self.frameIndex = 0
+        
+        #action value to indicate animation loop that plays
+        self.explosion = 0
+        
+        self.updateTime = pygame.time.get_ticks()
+        
+        #load all images for players
+        explosionTypes = ['Cannon', 'Nitroglycerin', 'Dynamite']
+        
+        for explosion in explosionTypes:
+            tempList = []
+        
+            explosionFrameNum = len(os.listdir(f'IMG/Explosives/{explosion}'))
+            for num in range(explosionFrameNum):
+                explosionIMG = pygame.image.load(f'IMG/Explosives/{explosion}/{num}.png').convert_alpha()
+            
+                explosionIMG = pygame.transform.scale(explosionIMG, (int(explosionIMG.get_width() * scale) , (int(explosionIMG.get_height() * scale))))
+                #appends images to templist
+                tempList.append(explosionIMG)
+                
+            #appends idle tempList to overall animation list
+            self.explosion_list.append(tempList)
+                
+        self.timer = CANNON_TIMER
+        self.velY = CANNON_VELOCITY
+        
+        self.image = self.explosion_list[self.explosion][self.frameIndex]
+            
+        self.rect = self.image.get_rect()
+        self.rect.center = (x, y)
+        self.counter = 0
+        
+        # Create the mask for the explosion on the current image
+        self.mask = pygame.mask.from_surface(self.image)
+    
 class Cannonball(pygame.sprite.Sprite):
     def __init__(self, x, y, direction, speed):
         super().__init__()
@@ -110,6 +152,7 @@ class Bullet(pygame.sprite.Sprite):
 #creates sprite groups        
 bulletGroup = pygame.sprite.Group()
 cannonGroup = pygame.sprite.Group()        
+explosionGroup = pygame.sprite.Group()
 
 #Gunslinger player class
 class Gunslinger(pygame.sprite.Sprite):
@@ -318,8 +361,11 @@ while run:
     
     #updates and draws groups
     bulletGroup.update()
+    cannonGroup.update()
+    explosionGroup.update()
     bulletGroup.draw(screen)
-    
+    cannonGroup.draw(screen)
+    explosionGroup.draw(screen)
     #updates player actions
     if player.alive:
             
