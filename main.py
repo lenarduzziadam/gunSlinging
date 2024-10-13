@@ -115,13 +115,14 @@ class Cannonball(pygame.sprite.Sprite):
             
     
 class Bullet(pygame.sprite.Sprite):
-    def __init__(self, x, y, direction, speed):
+    def __init__(self, owner, x, y, direction, speed):
         super().__init__()
         self.speed = speed
         self.image = bulletIMG
+        self.owner = owner
         
         # Flip the bullet horizontally if the direction is negative (facing left)
-        if player.direction == -1:  #KEY: -1 is left, 1 is right
+        if owner.direction == -1:  #KEY: -1 is left, 1 is right
             self.image = pygame.transform.flip(self.image, True, False)
             
         self.rect = self.image.get_rect()
@@ -138,16 +139,22 @@ class Bullet(pygame.sprite.Sprite):
         if self.rect.right < 0 or self.rect.left > SCREEN_WIDTH:
             self.kill()
 
-        #collision checks
-        if pygame.sprite.spritecollide(player, bulletGroup, False):
-            if player.alive:
-                player.health -= 5
-                self.kill()
-                
-        if pygame.sprite.spritecollide(enemy, bulletGroup, False):
-            if enemy.alive:
-                enemy.health -= 5
-                self.kill()
+        #section added to avoid friendly fire with player characters own weapon
+        if self.owner != player:
+            #collision checks
+            if pygame.sprite.spritecollide(player, bulletGroup, False):
+                if player.alive:
+                    print("Player hit by enemy bullet!")
+                    player.health -= 5
+                    self.kill()
+        
+        #setting to avoid friendly fire amongst enemies            
+        if self.owner != enemy:           
+            if pygame.sprite.spritecollide(enemy, bulletGroup, False):
+                if enemy.alive:
+                    print("Enemy hit by player bullet!")
+                    enemy.health -= 5
+                    self.kill()
             
 #creates sprite groups        
 bulletGroup = pygame.sprite.Group()
@@ -232,7 +239,8 @@ class Gunslinger(pygame.sprite.Sprite):
         
         #updates cannon cooldown MAY or May not use
         if self.cannonCooldown > 0:
-            self.cannonCooldown -= 1;    
+            self.cannonCooldown -= 1;   
+                       
             
     def move(self, movingLeft, movingRight):
         #resets movment variables
@@ -277,7 +285,7 @@ class Gunslinger(pygame.sprite.Sprite):
         
         if self.shootCooldown == 0 and self.ammo > 0:
             self.shootCooldown = BULLET_COOLDOWN
-            bullet = Bullet(self.rect.centerx + (self.int1 * self.rect.size[0] * self.direction), self.rect.centery + (self.int2 * self.rect.size[0]), self.direction, BULLET_SPEED)
+            bullet = Bullet(self, self.rect.centerx + (self.int1 * self.rect.size[0] * self.direction), self.rect.centery + (self.int2 * self.rect.size[0]), self.direction, BULLET_SPEED)
             bulletGroup.add(bullet)
             
             #ammo reduction
@@ -361,11 +369,8 @@ while run:
     
     #updates and draws groups
     bulletGroup.update()
-    cannonGroup.update()
-    explosionGroup.update()
     bulletGroup.draw(screen)
-    cannonGroup.draw(screen)
-    explosionGroup.draw(screen)
+   
     #updates player actions
     if player.alive:
             
