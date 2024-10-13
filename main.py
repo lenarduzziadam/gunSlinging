@@ -1,3 +1,7 @@
+#Author : Adam Lenarduzzi
+#Project: Gunslinger game
+#Genre: 2d platfomer with range wepaons
+
 import os
 import pygame
 from settings import * 
@@ -15,6 +19,9 @@ clock = pygame.time.Clock()
 movingLeft = False
 movingRight = False
 shoot = False
+cannon = False
+
+cannonShot = False
 
 #images to load:
 bulletIMG = pygame.image.load('IMG/Bullet/Small/0.png').convert_alpha()
@@ -88,17 +95,18 @@ cannonGroup = pygame.sprite.Group()
 
 #Gunslinger player class
 class Gunslinger(pygame.sprite.Sprite):
-    def __init__(self, charType, x, y, scale, speed, ammo, health):
+    def __init__(self, charType, x, y, scale, speed, ammo, health, balls):
         pygame.sprite.Sprite.__init__(self)
         self.alive = True
         
         self.speed = speed
         
         self.shootCooldown = 0
+        self.cannonCooldown = 0
         
         self.ammo = ammo
         self.startAmmo = ammo
-        
+        self.balls = balls
         self.health = health
         self.maxHealth = self.health
         
@@ -160,7 +168,10 @@ class Gunslinger(pygame.sprite.Sprite):
         #update shootCooldown
         if self.shootCooldown > 0:
             self.shootCooldown -= 1;
-            
+        
+        #updates cannon cooldown MAY or May not use
+        if self.cannonCooldown > 0:
+            self.cannonCooldown -= 1;    
             
     def move(self, movingLeft, movingRight):
         #resets movment variables
@@ -210,13 +221,19 @@ class Gunslinger(pygame.sprite.Sprite):
             
             #ammo reduction
             self.ammo -= 1
-            
+    
+    #CLASS DESIGNATED FOR CANNON #MIGHT NEED to be put in seperate class        
     def cannon(self, int1, int2):
         self.int1 = int1
         self.int2 = int2
         
-        cannonball = Cannonball(self.rect.centerx + (self.int1 * self.rect.size[0] * self.direction), self.rect.centery + (self.int2 * self.rect.size[0]), self.direction, CANON_SPEED)
-        cannonGroup.add(cannonball)
+        if self.balls > 0 and self.cannonCooldown == 0:
+            self.cannonCooldown = CANNON_COOLDOWN
+            cannonball = Cannonball(self.rect.centerx + (self.int1 * self.rect.size[0] * self.direction), self.rect.centery + (self.int2 * self.rect.size[0]), self.direction, CANON_SPEED)
+            cannonGroup.add(cannonball)
+            
+            self.balls += 1
+            
         
     def updateAnimations(self):
         #update image based on current fram
@@ -263,8 +280,8 @@ class Gunslinger(pygame.sprite.Sprite):
 
 
 #initilization of players
-player = Gunslinger('Cowboy', p_startX, p_startY, PLAYER_SCALE, PLAYER_SPEED, PLAYER_AMMO, PLAYER_HEALTH)
-enemy = Gunslinger('Gangster',400, 250, PLAYER_SCALE, PLAYER_SPEED, ENEMY_AMMO, ENEMY_HEALTH)
+player = Gunslinger('Cowboy', p_startX, p_startY, PLAYER_SCALE, PLAYER_SPEED, PLAYER_AMMO, PLAYER_HEALTH, 0)
+enemy = Gunslinger('Gangster',400, 250, PLAYER_SCALE, PLAYER_SPEED, ENEMY_AMMO, ENEMY_HEALTH, 0)
 
 
 run = True
@@ -328,9 +345,6 @@ while run:
             
             if event.key == pygame.K_SPACE:
                 shoot = True
-            
-            if event.key == pygame.K_q:
-                cannon = True
         
             if event.key == pygame.K_RETURN and player.alive:
                 player.jump = True
@@ -350,9 +364,6 @@ while run:
                 movingLeft = False
             if event.key == pygame.K_d:
                 movingRight = False   
-                
-            if event.key == pygame.K_q:
-                cannon = False
             
             if event.key == pygame.K_SPACE:
                 shoot = False     
