@@ -67,9 +67,6 @@ class Explosion(pygame.sprite.Sprite):
             #appends idle tempList to overall animation list
             self.explosion_list.append(tempList)
                 
-        self.timer = CANNON_TIMER
-        self.velY = CANNON_VELOCITY
-        
         self.image = self.explosion_list[self.explosion][self.frameIndex]
             
         self.rect = self.image.get_rect()
@@ -79,6 +76,20 @@ class Explosion(pygame.sprite.Sprite):
         # Create the mask for the explosion on the current image
         self.mask = pygame.mask.from_surface(self.image)
     
+    def update(self):
+        #updates explosion animations
+        self.counter += 1
+        
+        if self.counter >= EXPLOSION_SPEED:
+            self.count = 0
+            self.frameIndex += 1
+            
+            #checks if animation complete
+            if self.frameIndex >= len(self.explosion_list):
+                self.kill()     
+            else:
+                self.image = self.explosion_list[self.frameIndex]
+            
 class Cannonball(pygame.sprite.Sprite):
     def __init__(self, x, y, direction, speed):
         super().__init__()
@@ -114,6 +125,17 @@ class Cannonball(pygame.sprite.Sprite):
         #updates cannonball position
         self.rect.x += dx
         self.rect.y += dy
+        
+        #countdown timer
+        if self.timer <=0:
+            self.kill()
+            explode = Explosion(self.rect.x, self.rect.y, EXPLODE_CANNON_SCALE)
+            explosionGroup.add(explode)
+            
+            #do damage to anything nearby
+            if abs(self.rect.centerx - player.rect.centerx) < EXPLOSIVE_RANGE and \
+                abs(self.rect.centery - player.rect.centery) < EXPLOSIVE_RANGE:
+                player.health -= 30
             
     
 class Bullet(pygame.sprite.Sprite):
@@ -158,11 +180,6 @@ class Bullet(pygame.sprite.Sprite):
                     enemy.health -= 5
                     self.kill()
             
-#creates sprite groups        
-bulletGroup = pygame.sprite.Group()
-cannonGroup = pygame.sprite.Group()        
-explosionGroup = pygame.sprite.Group()
-
 #Gunslinger player class
 class Gunslinger(pygame.sprite.Sprite):
     def __init__(self, charType, x, y, scale, speed, ammo, health, balls):
@@ -347,13 +364,17 @@ class Gunslinger(pygame.sprite.Sprite):
     def draw(self):
         screen.blit(pygame.transform.flip(self.image, self.flip, False), self.rect)
         
-    
+#creates sprite groups        
+bulletGroup = pygame.sprite.Group()
+cannonGroup = pygame.sprite.Group()        
+explosionGroup = pygame.sprite.Group()
+enemyGroup = pygame.sprite.Group()    
 
 
 #initilization of players
 player = Gunslinger('Cowboy', p_startX, p_startY, PLAYER_SCALE, PLAYER_SPEED, PLAYER_AMMO, PLAYER_HEALTH, 0)
 enemy = Gunslinger('Gangster',400, 250, PLAYER_SCALE, PLAYER_SPEED, ENEMY_AMMO, ENEMY_HEALTH, 0)
-
+enemyGroup.add(enemy)
 
 run = True
 while run:
