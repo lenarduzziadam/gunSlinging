@@ -36,7 +36,7 @@ def drawBG():
     pygame.draw.line(screen, RED, (0,FLOOR), (SCREEN_WIDTH, 300))
     
 class Explosion(pygame.sprite.Sprite):
-    def __init__(self, x, y, direction, scale):
+    def __init__(self, x, y, scale):
         super().__init__()
         
         self.scale = scale
@@ -55,6 +55,8 @@ class Explosion(pygame.sprite.Sprite):
             tempList = []
         
             explosionFrameNum = len(os.listdir(f'IMG/Explosives/{explosion}'))
+            
+            #for loop meant to iterate through animations for explosions 
             for num in range(explosionFrameNum):
                 explosionIMG = pygame.image.load(f'IMG/Explosives/{explosion}/{num}.png').convert_alpha()
             
@@ -144,7 +146,7 @@ class Bullet(pygame.sprite.Sprite):
             #collision checks
             if pygame.sprite.spritecollide(player, bulletGroup, False):
                 if player.alive:
-                    print("Player hit by enemy bullet!")
+                    print(f"Player hit by enemy bullet! HP: {player.health}")
                     player.health -= 5
                     self.kill()
         
@@ -152,7 +154,7 @@ class Bullet(pygame.sprite.Sprite):
         if self.owner != enemy:           
             if pygame.sprite.spritecollide(enemy, bulletGroup, False):
                 if enemy.alive:
-                    print("Enemy hit by player bullet!")
+                    print(f"Enemy hit by player bullet! Enemy HP:{enemy.health}")
                     enemy.health -= 5
                     self.kill()
             

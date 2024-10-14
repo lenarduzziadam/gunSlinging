@@ -11,7 +11,7 @@ CANNON_SCALE = 0.03;
 
 CANNON_TIMER = 100;
 
-X_ADJUST_BULLET = 0.445 
+X_ADJUST_BULLET = 0.25 
 Y_ADJUST_BULLET = 0.25
 
 #Capcities (Health/Ammo, etc...)
