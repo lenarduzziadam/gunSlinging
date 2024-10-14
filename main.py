@@ -35,6 +35,8 @@ def drawBG():
     
     pygame.draw.line(screen, RED, (0,FLOOR), (SCREEN_WIDTH, 300))
     
+#TODO: Explosion class needs to be fully implemented (and files/animations need to be added) 
+#Also needs method for animation updates
 class Explosion(pygame.sprite.Sprite):
     def __init__(self, x, y, scale):
         super().__init__()
@@ -42,9 +44,10 @@ class Explosion(pygame.sprite.Sprite):
         self.scale = scale
         self.explosion_list = []
         self.frameIndex = 0
+        self.explode = 0
         
         #action value to indicate animation loop that plays
-        self.explosion = 0
+        #self.explosion = 0
         
         self.updateTime = pygame.time.get_ticks()
         
@@ -89,6 +92,29 @@ class Explosion(pygame.sprite.Sprite):
                 self.kill()     
             else:
                 self.image = self.explosion_list[self.frameIndex]
+                
+    def updateAnimations(self):
+        #update image based on current fram
+        self.image = self.explosion_list[self.explode][self.frameIndex]
+        #checks time since last update updates if enough time passed
+        if pygame.time.get_ticks() - self.updateTime > ANIMATION_COOLDOWN:
+            self.updateTime = pygame.time.get_ticks()
+            self.frameIndex += 1
+            
+        #if animation runs out reset back to start
+        if self.frameIndex >= len(self.animation_list[self.action]):
+            self.frameIndex = len(self.animation_list[self.action]) - 1
+        
+        # Update the mask with the new image for pixel-perfect collision
+        self.mask = pygame.mask.from_surface(self.image)
+                
+    def updateExplosions(self, newExplosion):
+        #check if new action different from previous
+        if newExplosion != self.explode:
+            self.explode = newExplosion
+            #reset animation loop to cater for new action
+            self.frameIndex = 0
+            self.updateTime = pygame.time.get_ticks()
             
 class Cannonball(pygame.sprite.Sprite):
     def __init__(self, x, y, direction, speed):
@@ -137,6 +163,10 @@ class Cannonball(pygame.sprite.Sprite):
                 abs(self.rect.centery - player.rect.centery) < EXPLOSIVE_RANGE:
                 player.health -= 30
             
+            for enemy in enemyGroup:
+                if abs(self.rect.centerx - enemy.rect.centerx) < EXPLOSIVE_RANGE and \
+                    abs(self.rect.centery - enemy.rect.centery) < EXPLOSIVE_RANGE:
+                    player.health -= 30
     
 class Bullet(pygame.sprite.Sprite):
     def __init__(self, owner, x, y, direction, speed):
@@ -320,7 +350,7 @@ class Gunslinger(pygame.sprite.Sprite):
             cannonball = Cannonball(self.rect.centerx + (self.int1 * self.rect.size[0] * self.direction), self.rect.centery + (self.int2 * self.rect.size[0]), self.direction, CANON_SPEED)
             cannonGroup.add(cannonball)
             
-            self.balls += 1
+            self.balls -= 1
             
         
     def updateAnimations(self):
