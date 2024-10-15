@@ -41,13 +41,18 @@ itemDrops = {
     'Ammo'      : ammoIMG
 }
 
+font = pygame.font.SysFont('Times New Roman', 30)
+
+def drawText(text, font, color, x, y):
+    img = font.render(text, True, color)
+    screen.blit(img, (x,y))
+
 #draws background
 def drawBG():
     screen.fill(BLACK)
     
     pygame.draw.line(screen, RED, (0,FLOOR), (SCREEN_WIDTH, 300))
-
-
+    
 #Implementation for item drops
 class ItemDrops(pygame.sprite.Sprite):
     def __init__(self, itemType, x, y):
@@ -65,7 +70,13 @@ class ItemDrops(pygame.sprite.Sprite):
             #checks box itemType
             if self.itemType == 'Health':
                 player.health += 25
+                
+                #check to ensure health does not go over max
+                if player.health > player.maxHealth:
+                    player.health = player.maxHealth
+                
                 print(f'Feel the Love picked up a Southern Heart \nPlayer Health: {player.health}')
+                    
             elif self.itemType == 'Ammo': 
                 player.ammo += 10
                 print(f'Picked up Ammo box!\nPlayer Ammo now: {player.ammo}')
@@ -460,6 +471,7 @@ while run:
     clock.tick()
     
     drawBG()
+    drawText(f'AMMO: {player.ammo}', font, WHITE, 10, 35)
     
     
     player.update()
