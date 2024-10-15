@@ -5,7 +5,6 @@
 import os
 import pygame
 from settings import * 
-from items import *
 
 
 pygame.init()
@@ -30,12 +29,37 @@ bulletIMG = pygame.transform.scale(bulletIMG, (int(bulletIMG.get_width() * BULLE
 
 cannonIMG = pygame.image.load('IMG/Bullet/Canon/0.png').convert_alpha()
 cannonIMG = pygame.transform.scale(cannonIMG, (int(cannonIMG.get_width() * CANNON_SCALE),(int(cannonIMG.get_height() * CANNON_SCALE))))
+
+healthIMG = pygame.image.load('IMG/Icons/Health/0.png').convert_alpha()
+healthIMG = pygame.transform.scale(healthIMG, (int(healthIMG.get_width() * HEALTH_SCALE),(int(healthIMG.get_height() * HEALTH_SCALE))))
+
+ammoIMG = pygame.image.load('IMG/Icons/Ammo/0.png').convert_alpha()
+ammoIMG = pygame.transform.scale(ammoIMG, (int(ammoIMG.get_width() * AMMO_SCALE),(int(ammoIMG.get_height() * AMMO_SCALE))))
+
+itemDrops = {
+    'Health'    : healthIMG,
+    'Ammo'      : ammoIMG
+}
+
 #draws background
 def drawBG():
     screen.fill(BLACK)
     
     pygame.draw.line(screen, RED, (0,FLOOR), (SCREEN_WIDTH, 300))
-    
+
+
+#Implementation for item drops
+class ItemDrops(pygame.sprite.Sprite):
+    def __init__(self, itemType, x, y):
+        pygame.sprite.Sprite.__init__(self)
+        self.itemType = itemType
+        
+        #item drops
+        self.image = itemDrops[self.itemType]
+        self.rect = self.image.get_rect()
+        self.rect.midtop = (x + TILESIZE // 2, y + (TILESIZE - self.image.get_height()))
+        
+            
 #TODO: Explosion class needs to be fully implemented (and files/animations need to be added) 
 #Also needs method for animation updates
 class Explosion(pygame.sprite.Sprite):
@@ -402,7 +426,13 @@ bulletGroup = pygame.sprite.Group()
 cannonGroup = pygame.sprite.Group()        
 explosionGroup = pygame.sprite.Group()
 enemyGroup = pygame.sprite.Group()    
+itemDropsGroup = pygame.sprite.Group()
 
+#temp item creation area
+healthHeart = ItemDrops('Health', 100, 300)
+ammoBox = ItemDrops('Ammo', 400, 400)
+
+itemDropsGroup.add(healthHeart, ammoBox)
 
 #initilization of players
 player = Gunslinger('Cowboy', p_startX, p_startY, PLAYER_SCALE, PLAYER_SPEED, PLAYER_AMMO, PLAYER_HEALTH, 0)
@@ -428,6 +458,8 @@ while run:
     #updates and draws groups
     bulletGroup.update()
     bulletGroup.draw(screen)
+    itemDropsGroup.update()
+    itemDropsGroup.draw(screen)
    
     #updates player actions
     if player.alive:
