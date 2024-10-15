@@ -58,6 +58,20 @@ class ItemDrops(pygame.sprite.Sprite):
         self.image = itemDrops[self.itemType]
         self.rect = self.image.get_rect()
         self.rect.midtop = (x + TILESIZE // 2, y + (TILESIZE - self.image.get_height()))
+    
+    def update(self):
+        #checks for player collision with box then adds to health/inventory
+        if pygame.sprite.collide_rect(self, player):
+            #checks box itemType
+            if self.itemType == 'Health':
+                player.health += 25
+                print(f'Feel the Love picked up a Southern Heart \nPlayer Health: {player.health}')
+            elif self.itemType == 'Ammo': 
+                player.ammo += 10
+                print(f'Picked up Ammo box!\nPlayer Ammo now: {player.ammo}')
+                
+            #deletes item box
+            self.kill()
         
             
 #TODO: Explosion class needs to be fully implemented (and files/animations need to be added) 
@@ -429,8 +443,8 @@ enemyGroup = pygame.sprite.Group()
 itemDropsGroup = pygame.sprite.Group()
 
 #temp item creation area
-healthHeart = ItemDrops('Health', 100, 300)
-ammoBox = ItemDrops('Ammo', 400, 400)
+healthHeart = ItemDrops('Health', 50, 240)
+ammoBox = ItemDrops('Ammo', 500, 240)
 
 itemDropsGroup.add(healthHeart, ammoBox)
 
