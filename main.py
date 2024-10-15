@@ -102,8 +102,8 @@ class Explosion(pygame.sprite.Sprite):
             self.frameIndex += 1
             
         #if animation runs out reset back to start
-        if self.frameIndex >= len(self.animation_list[self.action]):
-            self.frameIndex = len(self.animation_list[self.action]) - 1
+        if self.frameIndex >= len(self.animation_list[self.explode]):
+            self.frameIndex = len(self.animation_list[self.explode]) - 1
         
         # Update the mask with the new image for pixel-perfect collision
         self.mask = pygame.mask.from_surface(self.image)
@@ -203,12 +203,14 @@ class Bullet(pygame.sprite.Sprite):
                     self.kill()
         
         #setting to avoid friendly fire amongst enemies            
-        if self.owner != enemy:           
-            if pygame.sprite.spritecollide(enemy, bulletGroup, False):
-                if enemy.alive:
-                    print(f"Enemy hit by player bullet! Enemy HP:{enemy.health}")
-                    enemy.health -= 5
-                    self.kill()
+        
+        for enemy in enemyGroup:
+            if self.owner != enemy:           
+                if pygame.sprite.spritecollide(enemy, bulletGroup, False):
+                    if enemy.alive:
+                        print(f"Enemy hit by player bullet! Enemy HP:{enemy.health}")
+                        enemy.health -= 5
+                        self.kill()
             
 #Gunslinger player class
 class Gunslinger(pygame.sprite.Sprite):
@@ -404,7 +406,8 @@ enemyGroup = pygame.sprite.Group()
 #initilization of players
 player = Gunslinger('Cowboy', p_startX, p_startY, PLAYER_SCALE, PLAYER_SPEED, PLAYER_AMMO, PLAYER_HEALTH, 0)
 enemy = Gunslinger('Gangster',400, 250, PLAYER_SCALE, PLAYER_SPEED, ENEMY_AMMO, ENEMY_HEALTH, 0)
-enemyGroup.add(enemy)
+gangster = Gunslinger('Gangster', 300, 300, PLAYER_SCALE, PLAYER_SPEED, ENEMY_AMMO, ENEMY_HEALTH, 0)
+enemyGroup.add(enemy, gangster)
 
 run = True
 while run:
@@ -417,8 +420,9 @@ while run:
     player.update()
     player.draw()
     
-    enemy.update()
-    enemy.draw()
+    for enemy in enemyGroup:
+        enemy.update()
+        enemy.draw()
     
     #updates and draws groups
     bulletGroup.update()
