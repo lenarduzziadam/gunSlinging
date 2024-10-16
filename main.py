@@ -177,6 +177,9 @@ class Cannonball(pygame.sprite.Sprite):
         # Flip the bullet horizontally if the direction is negative (facing left)
         if player.direction == -1:  #KEY: -1 is left, 1 is right
             self.image = pygame.transform.flip(self.image, True, False)
+        
+            #Regenerate the mask after updating the image
+            self.mask = pygame.mask.from_surface(self.image)
             
         self.rect = self.image.get_rect()
         self.rect.center = (x, y)
@@ -228,6 +231,8 @@ class Bullet(pygame.sprite.Sprite):
         # Flip the bullet horizontally if the direction is negative (facing left)
         if owner.direction == -1:  #KEY: -1 is left, 1 is right
             self.image = pygame.transform.flip(self.image, True, False)
+            # Always regenerate the mask after updating the image
+            self.mask = pygame.mask.from_surface(self.image)
             
         self.rect = self.image.get_rect()
         self.rect.center = (x, y)
@@ -246,7 +251,7 @@ class Bullet(pygame.sprite.Sprite):
         #section added to avoid friendly fire with player characters own weapon
         if self.owner != player:
             #collision checks
-            if pygame.sprite.spritecollide(player, bulletGroup, False):
+            if pygame.sprite.spritecollide(player, bulletGroup, False, pygame.sprite.collide_mask):
                 if player.alive:
                     print(f"Player hit by enemy bullet! HP: {player.health}")
                     player.health -= 5
@@ -256,7 +261,7 @@ class Bullet(pygame.sprite.Sprite):
         
         for enemy in enemyGroup:
             if self.owner != enemy:           
-                if pygame.sprite.spritecollide(enemy, bulletGroup, False):
+                if pygame.sprite.spritecollide(enemy, bulletGroup, False, pygame.sprite.collide_mask):
                     if enemy.alive:
                         print(f"Enemy hit by player bullet! Enemy HP:{enemy.health}")
                         enemy.health -= 5
@@ -264,7 +269,7 @@ class Bullet(pygame.sprite.Sprite):
             
 #Gunslinger player class
 class Gunslinger(pygame.sprite.Sprite):
-    def __init__(self, charType, x, y, scale, speed, ammo, health, balls):
+    def __init__(self, charType, x, y, scale, speed, ammo, health, balls = 0):
         pygame.sprite.Sprite.__init__(self)
         self.alive = True
         
@@ -421,6 +426,7 @@ class Gunslinger(pygame.sprite.Sprite):
                 
             else:
                 self.frameIndex = 0;
+
             
         # Update the mask with the new image for pixel-perfect collision
         self.mask = pygame.mask.from_surface(self.image)
@@ -443,8 +449,14 @@ class Gunslinger(pygame.sprite.Sprite):
             self.updateActions(5)
             
         
-    def draw(self):
+    def draw(self, display_mask=False):
+        # Draw player sprite
         screen.blit(pygame.transform.flip(self.image, self.flip, False), self.rect)
+        
+        # If display_mask is True, visualize the mask
+        if display_mask:
+            mask_surface = self.mask.to_surface(setcolor=(0, 255, 0), unsetcolor=(0, 0, 0))
+            screen.blit(mask_surface, self.rect.topleft)
         
 #creates sprite groups        
 bulletGroup = pygame.sprite.Group()
