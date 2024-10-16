@@ -3,7 +3,7 @@
 #Genre: 2d platfomer with range wepaons
 
 import os
-import pygame
+import pygame, random
 from settings import * 
 
 
@@ -320,6 +320,11 @@ class Gunslinger(pygame.sprite.Sprite):
         
         self.updateTime = pygame.time.get_ticks()
         
+        #ai specific Variables
+        self.moveCounter = 0
+        self.idling = False
+        self.idleCounter = 0
+        
         #load all images for players
         animationTypes = ['Idle', 'Walk', 'Jump/Normal', 'Jump/Gun', 'Shoot', 'Death']
         
@@ -414,6 +419,46 @@ class Gunslinger(pygame.sprite.Sprite):
             
             #ammo reduction
             self.ammo -= 1
+            
+    def ai(self):
+        if self.alive and player.alive:
+            # Debugging: print current AI state
+            if self.idling:
+                print("AI is idling")
+            else:
+                print(f"AI is moving. Direction: {'Right' if self.direction == 1 else 'Left'}")
+        
+            if self.idling == False and random.randint(1, 300) == 1:
+                self.idling = True
+                self.idleCounter = 420
+                print("Ai Started Idling")
+                
+            if self.idling == False:
+                if self.direction == 1:
+                    aiMovesRight = True
+                else:
+                    aiMovesRight = False
+                
+                aiMovesLeft = not aiMovesRight
+                
+                self.move(aiMovesLeft, aiMovesRight)
+                 
+                self.updateActions(1)#1 : walk  
+                
+                self.moveCounter += 1
+                
+                if self.moveCounter > TILESIZE:
+                    self.direction *= -1
+                    self.moveCounter *= -1
+                    print("AI changed direction")
+            
+            else:
+                if self.idling == True:
+                    self.updateActions(0)#1 : walk
+                    self.idleCounter -= 1
+                if self.idleCounter < 0:
+                    self.idling = False
+                    print("AI stopped idling")
     
     #CLASS DESIGNATED FOR CANNON #MIGHT NEED to be put in seperate class        
     def cannon(self, int1, int2):
@@ -458,6 +503,7 @@ class Gunslinger(pygame.sprite.Sprite):
             #reset animation loop to cater for new action
             self.frameIndex = 0
             self.updateTime = pygame.time.get_ticks()
+            print(f"Switching to action {newAction}")
 
     def checkAlive(self):
         if self.health <= 0:
@@ -493,9 +539,9 @@ itemDropsGroup.add(healthHeart, ammoBox)
 player = Gunslinger('Cowboy', p_startX, p_startY, PLAYER_SCALE, PLAYER_SPEED, PLAYER_AMMO, PLAYER_HEALTH, 0)
 healthbar = HealthBar(10, 10, player.health, player.health)
 
-enemy = Gunslinger('Gangster',400, 250, PLAYER_SCALE, PLAYER_SPEED, ENEMY_AMMO, ENEMY_HEALTH, 0)
-gangster = Gunslinger('Gangster', 300, 300, PLAYER_SCALE, PLAYER_SPEED, ENEMY_AMMO, ENEMY_HEALTH, 0)
-enemyGroup.add(enemy, gangster)
+enemy = Gunslinger('Gangster',400, 250, PLAYER_SCALE, ENEMY_SPEED, ENEMY_AMMO, ENEMY_HEALTH, 0)
+gangster = Gunslinger('Gangster', 300, 300, PLAYER_SCALE, ENEMY_SPEED, ENEMY_AMMO, ENEMY_HEALTH, 0)
+enemyGroup.add(enemy)
 
 run = True
 while run:
@@ -506,11 +552,12 @@ while run:
     healthbar.draw(player.health)
     drawText(f'AMMO: {player.ammo}', font, WHITE, 10, 35)
     
-    
+
     player.update()
     player.draw()
     
     for enemy in enemyGroup:
+        enemy.ai()
         enemy.update()
         enemy.draw()
     
