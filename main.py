@@ -66,7 +66,7 @@ class ItemDrops(pygame.sprite.Sprite):
     
     def update(self):
         #checks for player collision with box then adds to health/inventory
-        if pygame.sprite.collide_rect(self, player):
+        if pygame.sprite.collide_mask(self, player):
             #checks box itemType
             if self.itemType == 'Health':
                 player.health += 25
@@ -83,7 +83,25 @@ class ItemDrops(pygame.sprite.Sprite):
                 
             #deletes item box
             self.kill()
+
+#making class for health bar
+class HealthBar():
+    def __init__(self, x, y, health, maxHealth):
+        self.x = x
+        self.y = y
+        self.health = health
+        self.maxHealth = maxHealth
         
+    def draw(self, health):
+        #updates health
+        self.health = health
+        
+        #health ratio calculation
+        ratio = self.health/self.maxHealth
+        
+        pygame.draw.rect(screen, OFFBLACK, (self.x - 3, self.y - 3, HB_LOC_X + 5, HB_LOC_Y + 5))
+        pygame.draw.rect(screen, RED, (self.x, self.y, HB_LOC_X, HB_LOC_Y))
+        pygame.draw.rect(screen, GREEN, (self.x, self.y, HB_LOC_X * ratio, HB_LOC_Y))            
             
 #TODO: Explosion class needs to be fully implemented (and files/animations need to be added) 
 #Also needs method for animation updates
@@ -329,11 +347,11 @@ class Gunslinger(pygame.sprite.Sprite):
 
         #calls specific frame index based on action value 
         self.image = self.animation_list[self.action][self.frameIndex]
+        self.mask = pygame.mask.from_surface(self.image)
+        
         self.rect = self.image.get_rect()
         self.rect.center = (x, y)
-        
-        # Create the mask for the player based on the current image
-        self.mask = pygame.mask.from_surface(self.image)
+
         
         
     def update(self):
@@ -473,6 +491,8 @@ itemDropsGroup.add(healthHeart, ammoBox)
 
 #initilization of players
 player = Gunslinger('Cowboy', p_startX, p_startY, PLAYER_SCALE, PLAYER_SPEED, PLAYER_AMMO, PLAYER_HEALTH, 0)
+healthbar = HealthBar(10, 10, player.health, player.health)
+
 enemy = Gunslinger('Gangster',400, 250, PLAYER_SCALE, PLAYER_SPEED, ENEMY_AMMO, ENEMY_HEALTH, 0)
 gangster = Gunslinger('Gangster', 300, 300, PLAYER_SCALE, PLAYER_SPEED, ENEMY_AMMO, ENEMY_HEALTH, 0)
 enemyGroup.add(enemy, gangster)
@@ -483,6 +503,7 @@ while run:
     clock.tick()
     
     drawBG()
+    healthbar.draw(player.health)
     drawText(f'AMMO: {player.ammo}', font, WHITE, 10, 35)
     
     
