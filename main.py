@@ -3,7 +3,7 @@
 #Genre: 2d platfomer with range wepaons
 
 import os
-import pygame, random
+import pygame, random, csv
 from settings import * 
 
 
@@ -15,6 +15,9 @@ pygame.display.set_caption('Gunslingers Vengence')
 #framerates
 clock = pygame.time.Clock()
 
+#LEVEL DEFINER
+level = 1
+
 #moving/action booleans
 movingLeft = False
 movingRight = False
@@ -24,6 +27,12 @@ cannon = False
 cannonShot = False
 
 #images to load:
+imageList = []
+for x in range(TILETYPES):
+    img = pygame.image.load(f'IMG/tile/{x}.png')
+    img = pygame.transform.scale(img, (TILESIZE, TILESIZE))
+    imageList.append(img)
+
 bulletIMG = pygame.image.load('IMG/Bullet/Small/0.png').convert_alpha()
 bulletIMG = pygame.transform.scale(bulletIMG, (int(bulletIMG.get_width() * BULLET_SCALE) , (int(bulletIMG.get_height() * BULLET_SCALE))))
 
@@ -52,7 +61,97 @@ def drawBG():
     screen.fill(BLACK)
     
     pygame.draw.line(screen, RED, (0,FLOOR), (SCREEN_WIDTH, 300))
+
+
+#class to define world and level layout
+class World():
+    def __init__(self):
+        self.obstacleList = []
     
+    def processData(self, data):
+        #iterate through each value in level data
+        for y, row in enumerate(data):
+            for x, tile in enumerate(row):
+                if tile >= 0:
+                    img = imageList[tile]
+                    img_rect = img.get_rect()
+                    img_rect.x = x * TILESIZE
+                    img_rect.y = y * TILESIZE
+                    
+                    tileData = (img, img_rect)
+                    
+                    if tile >= 0 and tile <= 8:
+                        self.obstacleList.append(tileData)
+                        
+                    elif tile >= 9 and tile <= 10:
+                        water = Aqua(img, x * TILESIZE, y * TILESIZE)
+                        waterGroup.add(water) 
+                    
+                    elif tile >= 11 and tile <= 14:
+                        decoration = Decorative(img, (int(x * TILESIZE)), (int(y * TILESIZE)))
+                        decorationGroup.add(decoration) 
+                    
+                    elif tile == 15: 
+                        #initilization of players
+                        player = Gunslinger('Cowboy', x * TILESIZE, y * TILESIZE, PLAYER_SCALE, PLAYER_SPEED, PLAYER_AMMO, PLAYER_HEALTH, 0)
+                        healthbar = HealthBar(10, 10, player.health, player.health)
+
+                    elif tile == 16:
+                        enemy = Gunslinger('Gangster', x * TILESIZE, y * TILESIZE, PLAYER_SCALE, ENEMY_SPEED, ENEMY_AMMO, ENEMY_HEALTH, 0)    
+                        enemyGroup.add(enemy)   
+                        
+                    elif tile == 17:
+                        ammoBox = ItemDrops('Ammo', x * TILESIZE, y * TILESIZE)
+                        itemDropsGroup.add(ammoBox) 
+                    
+                    elif tile == 18: #TODO: Implement Cannonball stuff and explosions
+                        pass
+                        
+                    elif tile == 19:
+                        healthHeart = ItemDrops('Health', x * TILESIZE, y * TILESIZE)
+                        itemDropsGroup.add(healthHeart) 
+                    
+                    elif tile == 20: #creates exit
+                        exit = Exit(img, (int(x * TILESIZE)), (int(y * TILESIZE)))
+                        exitGroup.add(exit) 
+    
+        #returns player and healthbar making it global
+        return player, healthbar              
+                                                    
+    
+    def draw(self):
+        for tile in self.obstacleList:
+            screen.blit(tile[0], tile[1])
+
+#class for decorative objects
+class Aqua(pygame.sprite.Sprite):
+    def __init__(self, img, x, y):
+        pygame.sprite.Sprite.__init__(self)
+        
+        self.image = img
+        self.rect = self.image.get_rect()
+        self.rect.midtop = ((int(x + TILESIZE // 2)), (int(y + (TILESIZE - self.image.get_height()))))
+
+        
+#class for decorative objects
+class Exit(pygame.sprite.Sprite):
+    def __init__(self, img, x, y):
+        pygame.sprite.Sprite.__init__(self)
+        
+        self.image = img
+        self.rect = self.image.get_rect()
+        self.rect.midtop = ((int(x + TILESIZE // 2)), (int(y + (TILESIZE - self.image.get_height()))))
+
+
+#class for decorative objects
+class Decorative(pygame.sprite.Sprite):
+    def __init__(self, img, x, y):
+        pygame.sprite.Sprite.__init__(self)
+        
+        self.image = img
+        self.rect = self.image.get_rect()
+        self.rect.midtop = ((int(x + TILESIZE // 2)), (int(y + (TILESIZE - self.image.get_height()))))
+                                               
 #Implementation for item drops
 class ItemDrops(pygame.sprite.Sprite):
     def __init__(self, itemType, x, y):
@@ -322,8 +421,10 @@ class Gunslinger(pygame.sprite.Sprite):
         
         #ai specific Variables
         self.moveCounter = 0
+        self.vision = pygame.Rect(0, 0, VISION_VAR1, VISION_VAR2)
         self.idling = False
         self.idleCounter = 0
+        
         
         #load all images for players
         animationTypes = ['Idle', 'Walk', 'Jump/Normal', 'Jump/Gun', 'Shoot', 'Death']
@@ -408,7 +509,7 @@ class Gunslinger(pygame.sprite.Sprite):
         self.rect.x += dx
         self.rect.y += dy
         
-    def shoot(self, int1, int2):
+    def shoot(self, int1 = X_ADJUST_BULLET, int2 = Y_ADJUST_BULLET):
         self.int1 = int1
         self.int2 = int2
         
@@ -421,19 +522,18 @@ class Gunslinger(pygame.sprite.Sprite):
             self.ammo -= 1
             
     def ai(self):
-        if self.alive and player.alive:
-            # Debugging: print current AI state
-            if self.idling:
-                print("AI is idling")
-            else:
-                print(f"AI is moving. Direction: {'Right' if self.direction == 1 else 'Left'}")
+        if self.alive:
         
             if self.idling == False and random.randint(1, 300) == 1:
                 self.idling = True
                 self.idleCounter = 420
-                print("Ai Started Idling")
-                
-            if self.idling == False:
+            
+            #check if ai is near player then shoots if close by
+            if self.vision.colliderect(player.rect) and player.alive:
+                self.updateActions(4)
+                self.shoot()
+                    
+            elif self.idling == False:
                 if self.direction == 1:
                     aiMovesRight = True
                 else:
@@ -447,18 +547,20 @@ class Gunslinger(pygame.sprite.Sprite):
                 
                 self.moveCounter += 1
                 
+                #updates vision counter rect as enemy moves
+                self.vision.center = (self.rect.centerx + (VISION_VAR1/2) * self.direction, self.rect.centery)
+                
                 if self.moveCounter > TILESIZE:
                     self.direction *= -1
                     self.moveCounter *= -1
-                    print("AI changed direction")
             
             else:
+                #fixed issue here
                 if self.idling == True:
-                    self.updateActions(0)#1 : walk
+                    self.updateActions(0)#0 : idle
                     self.idleCounter -= 1
                 if self.idleCounter < 0:
                     self.idling = False
-                    print("AI stopped idling")
     
     #CLASS DESIGNATED FOR CANNON #MIGHT NEED to be put in seperate class        
     def cannon(self, int1, int2):
@@ -503,7 +605,6 @@ class Gunslinger(pygame.sprite.Sprite):
             #reset animation loop to cater for new action
             self.frameIndex = 0
             self.updateTime = pygame.time.get_ticks()
-            print(f"Switching to action {newAction}")
 
     def checkAlive(self):
         if self.health <= 0:
@@ -521,6 +622,7 @@ class Gunslinger(pygame.sprite.Sprite):
         if display_mask:
             mask_surface = self.mask.to_surface(setcolor=(0, 255, 0), unsetcolor=(0, 0, 0))
             screen.blit(mask_surface, self.rect.topleft)
+    
         
 #creates sprite groups        
 bulletGroup = pygame.sprite.Group()
@@ -528,20 +630,26 @@ cannonGroup = pygame.sprite.Group()
 explosionGroup = pygame.sprite.Group()
 enemyGroup = pygame.sprite.Group()    
 itemDropsGroup = pygame.sprite.Group()
+waterGroup = pygame.sprite.Group()
+exitGroup = pygame.sprite.Group()
+decorationGroup = pygame.sprite.Group()
 
-#temp item creation area
-healthHeart = ItemDrops('Health', 50, 240)
-ammoBox = ItemDrops('Ammo', 500, 240)
 
-itemDropsGroup.add(healthHeart, ammoBox)
+#create empty tile list
+worldData = []
+for row in range(ROWS):
+    r = [-1] * COLS
+    worldData.append(r)
 
-#initilization of players
-player = Gunslinger('Cowboy', p_startX, p_startY, PLAYER_SCALE, PLAYER_SPEED, PLAYER_AMMO, PLAYER_HEALTH, 0)
-healthbar = HealthBar(10, 10, player.health, player.health)
+# Loads level data to create world
+with open(f'Levels/level{level}_data.csv', newline='') as csvfile:  # Fix applied here
+    reader = csv.reader(csvfile, delimiter=',')
+    for x, row in enumerate(reader):
+        for y, tile in enumerate(row):
+            worldData[x][y] = int(tile)
 
-enemy = Gunslinger('Gangster',400, 250, PLAYER_SCALE, ENEMY_SPEED, ENEMY_AMMO, ENEMY_HEALTH, 0)
-gangster = Gunslinger('Gangster', 300, 300, PLAYER_SCALE, ENEMY_SPEED, ENEMY_AMMO, ENEMY_HEALTH, 0)
-enemyGroup.add(enemy)
+world = World()
+player, healthbar = world.processData(worldData)
 
 run = True
 while run:
@@ -549,6 +657,10 @@ while run:
     clock.tick()
     
     drawBG()
+    
+    #draws world map
+    world.draw()
+    
     healthbar.draw(player.health)
     drawText(f'AMMO: {player.ammo}', font, WHITE, 10, 35)
     
@@ -566,6 +678,13 @@ while run:
     bulletGroup.draw(screen)
     itemDropsGroup.update()
     itemDropsGroup.draw(screen)
+    waterGroup.update()
+    decorationGroup.update()
+    exitGroup.update()
+    waterGroup.draw(screen)
+    exitGroup.draw(screen)
+    decorationGroup.draw(screen)
+    
    
     #updates player actions
     if player.alive:
