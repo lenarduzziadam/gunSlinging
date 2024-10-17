@@ -366,6 +366,10 @@ class Bullet(pygame.sprite.Sprite):
         #checks if bullet off screen
         if self.rect.right < 0 or self.rect.left > SCREEN_WIDTH:
             self.kill()
+            
+        for tile in world.obstacleList:
+            if tile[1].colliderect(self.rect):
+                self.kill()
 
         #section added to avoid friendly fire with player characters own weapon
         if self.owner != player:
@@ -455,14 +459,16 @@ class Gunslinger(pygame.sprite.Sprite):
 
         #calls specific frame index based on action value 
         self.image = self.animation_list[self.action][self.frameIndex]
-        self.mask = pygame.mask.from_surface(self.image)
+        
         
         self.rect = self.image.get_rect()
         self.rect.center = (x, y)
-        self.width = self.image.get_width() * 3 // 4
-        self.height = self.image.get_height() - 3
-
         
+        self.mask = pygame.mask.from_surface(self.image)
+        self.width, self.height = self.mask.get_size()
+
+        self.width = self.width * 3 // 4  # Adjusting width as needed
+        self.height = self.height - 3      # Adjusting height as needed
         
     def update(self):
         self.updateAnimations()
