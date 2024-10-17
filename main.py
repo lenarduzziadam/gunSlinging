@@ -149,6 +149,7 @@ class Decorative(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self)
         
         self.image = img
+        self.mask = pygame.mask.from_surface(self.image)
         self.rect = self.image.get_rect()
         self.rect.midtop = ((int(x + TILESIZE // 2)), (int(y + (TILESIZE - self.image.get_height()))))
                                                
@@ -310,6 +311,7 @@ class Cannonball(pygame.sprite.Sprite):
         dx = self.direction * self.speed
         dy = self.velY
         
+        
         if self.rect.bottom + dy > FLOOR:
             dy = FLOOR - self.rect.bottom
             self.speed = self.speed/2
@@ -457,6 +459,8 @@ class Gunslinger(pygame.sprite.Sprite):
         
         self.rect = self.image.get_rect()
         self.rect.center = (x, y)
+        self.width = self.image.get_width() * 3 // 4
+        self.height = self.image.get_height() - 3
 
         
         
@@ -496,15 +500,30 @@ class Gunslinger(pygame.sprite.Sprite):
             
         #changes rate of change applies gravity    
         self.velY += GRAVITY
-        
         if self.velY > 10:
-            self.velY
-            
+            self.velY 
+                      
         dy += self.velY
         
-        if self.rect.bottom + dy > FLOOR:
-            dy = FLOOR - self.rect.bottom
-            self.inAir = False
+        #checks for collision
+        for tile in world.obstacleList:
+            
+            #check collision in x direction
+            if tile[1].colliderect(self.rect.x + dx, self.rect.y, self.width, self.height):
+                dx = 0
+            
+            #check for collision in y axis
+            if tile[1].colliderect(self.rect.x, self.rect.y + dy, self.width, self.height):
+                #check if below ground
+                if self.velY < 0:
+                    self.velY = 0
+                    dy = tile[1].bottom - self.rect.top
+                    
+                elif self.velY >=0:
+                    self.velY = 0
+                    self.inAir = False
+                    dy = tile[1].top - self.rect.bottom 
+        
             
         self.rect.x += dx
         self.rect.y += dy
