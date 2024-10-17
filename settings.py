@@ -1,5 +1,5 @@
 #Sizes
-SCREEN_WIDTH = 1100;
+SCREEN_WIDTH = 900;
 SCREEN_HEIGHT = SCREEN_WIDTH * 0.8;
 
 #LEVEL sizes
@@ -8,7 +8,12 @@ COLS = 150
 TILESIZE = SCREEN_HEIGHT // ROWS;
 TILETYPES = 21
 
+#Scrolling aspects
+SCROLLING_THRESHOLD = 300
+
 #SCALES for levels
+BG_SCALE = 2.1
+
 PLAYER_SCALE = 2.5;
 
 DEATH_SCALE = 0.85
@@ -38,7 +43,7 @@ HB_LOC_X = 150
 HB_LOC_Y = 20
 
 #Framerates
-FPS = 30;
+FPS = 40;
 ANIMATION_COOLDOWN = 100
 
 #Game Variables and Physics

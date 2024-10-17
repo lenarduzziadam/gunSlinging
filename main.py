@@ -15,6 +15,10 @@ pygame.display.set_caption('Gunslingers Vengence')
 #framerates
 clock = pygame.time.Clock()
 
+#scrolling
+screenScroll = 0
+bgScroll = 0
+
 #LEVEL DEFINER
 level = 1
 
@@ -25,6 +29,10 @@ shoot = False
 cannon = False
 
 cannonShot = False
+
+#background images
+desertIMG = pygame.image.load('IMG/background/desert_BG.png')
+desertIMG = pygame.transform.scale(desertIMG, (int(desertIMG.get_width() * BG_SCALE) , (int(desertIMG.get_height() * BG_SCALE))))
 
 #images to load:
 imageList = []
@@ -59,8 +67,8 @@ def drawText(text, font, color, x, y):
 #draws background
 def drawBG():
     screen.fill(BLACK)
-    
-    pygame.draw.line(screen, RED, (0,FLOOR), (SCREEN_WIDTH, 300))
+    width = desertIMG.get_width()
+    screen.blit(desertIMG, ((0, 0)))
 
 
 #class to define world and level layout
@@ -121,6 +129,7 @@ class World():
     
     def draw(self):
         for tile in self.obstacleList:
+            tile[1][0] += screenScroll
             screen.blit(tile[0], tile[1])
 
 #class for decorative objects
@@ -132,6 +141,8 @@ class Aqua(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.midtop = ((int(x + TILESIZE // 2)), (int(y + (TILESIZE - self.image.get_height()))))
 
+    def update(self):
+        self.rect.x += screenScroll
         
 #class for decorative objects
 class Exit(pygame.sprite.Sprite):
@@ -142,6 +153,8 @@ class Exit(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.midtop = ((int(x + TILESIZE // 2)), (int(y + (TILESIZE - self.image.get_height()))))
 
+    def update(self):
+        self.rect.x += screenScroll
 
 #class for decorative objects
 class Decorative(pygame.sprite.Sprite):
@@ -152,7 +165,10 @@ class Decorative(pygame.sprite.Sprite):
         self.mask = pygame.mask.from_surface(self.image)
         self.rect = self.image.get_rect()
         self.rect.midtop = ((int(x + TILESIZE // 2)), (int(y + (TILESIZE - self.image.get_height()))))
-                                               
+    
+    def update(self):
+        self.rect.x += screenScroll
+                                                   
 #Implementation for item drops
 class ItemDrops(pygame.sprite.Sprite):
     def __init__(self, itemType, x, y):
@@ -165,6 +181,9 @@ class ItemDrops(pygame.sprite.Sprite):
         self.rect.midtop = (x + TILESIZE // 2, y + (TILESIZE - self.image.get_height()))
     
     def update(self):
+        
+        self.rect.x += screenScroll
+        
         #checks for player collision with box then adds to health/inventory
         if pygame.sprite.collide_mask(self, player):
             #checks box itemType
@@ -467,8 +486,8 @@ class Gunslinger(pygame.sprite.Sprite):
         self.mask = pygame.mask.from_surface(self.image)
         self.width, self.height = self.mask.get_size()
 
-        self.width = self.width * 3 // 4  # Adjusting width as needed
-        self.height = self.height - 3      # Adjusting height as needed
+        self.width = self.width * 3 // 5  # Adjusting width as needed
+        self.height = self.height - 2      # Adjusting height as needed
         
     def update(self):
         self.updateAnimations()
@@ -484,6 +503,7 @@ class Gunslinger(pygame.sprite.Sprite):
             
     def move(self, movingLeft, movingRight):
         #resets movment variables
+        screenScroll = 0
         dx = 0
         dy = 0
         
@@ -528,12 +548,25 @@ class Gunslinger(pygame.sprite.Sprite):
                 elif self.velY >=0:
                     self.velY = 0
                     self.inAir = False
-                    dy = tile[1].top - self.rect.bottom 
+                    dy = tile[1].top - self.rect.bottom
+                    
         
+        #check if going off edge
+        if self.charType == 'Cowboy':
+            if self.rect.left + dx < 0 or self.rect.right + dx > SCREEN_WIDTH:
+                dx = 0    
             
         self.rect.x += dx
         self.rect.y += dy
         
+        #update scroll based on player. 
+        if self.charType == 'Cowboy':
+            if self.rect.right > (SCREEN_WIDTH - SCROLLING_THRESHOLD) or self.rect.left < SCROLLING_THRESHOLD:
+                self.rect.x -= dx
+                screenScroll = -dx
+        
+        return screenScroll;
+    
     def shoot(self, int1 = X_ADJUST_BULLET, int2 = Y_ADJUST_BULLET):
         self.int1 = int1
         self.int2 = int2
@@ -586,6 +619,8 @@ class Gunslinger(pygame.sprite.Sprite):
                     self.idleCounter -= 1
                 if self.idleCounter < 0:
                     self.idling = False
+                    
+        self.rect.x += screenScroll
     
     #CLASS DESIGNATED FOR CANNON #MIGHT NEED to be put in seperate class        
     def cannon(self, int1, int2):
@@ -732,7 +767,7 @@ while run:
         else: 
             player.updateActions(0)#0: idle)
     
-        player.move(movingLeft, movingRight)
+        screenScroll = player.move(movingLeft, movingRight)
 
     for event in pygame.event.get():
         #quitting game
