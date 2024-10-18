@@ -3,7 +3,7 @@
 #Genre: 2d platfomer with range wepaons
 
 import os
-import pygame, random, csv
+import pygame, random, csv, button
 from pygame import mixer
 from settings import * 
 
@@ -31,6 +31,11 @@ shoot = False
 cannon = False
 
 cannonShot = False
+
+#button images
+startGameIMG = pygame.image.load('IMG/MainMenu/start.png').convert_alpha()
+exitGameIMG = pygame.image.load('IMG/MainMenu/exit.png').convert_alpha()
+retryIMG = pygame.image.load('IMG/MainMenu/retry.png').convert_alpha()
 
 #background images
 desertIMG = pygame.image.load('IMG/background/desert_BG.png')
@@ -690,8 +695,12 @@ class Gunslinger(pygame.sprite.Sprite):
         if display_mask:
             mask_surface = self.mask.to_surface(setcolor=(0, 255, 0), unsetcolor=(0, 0, 0))
             screen.blit(mask_surface, self.rect.topleft)
-    
-        
+
+#creating buttons
+startButton = button.Button(SBUTTONSIZES_X, SBUTTONSIZES_Y, startGameIMG, 1)    
+exitButton = button.Button(EBUTTONSIZES_X, EBUTTONSIZES_Y, exitGameIMG, 1) 
+retryButton = button.Button(SBUTTONSIZES_X, SBUTTONSIZES_Y, retryIMG, 1)
+         
 #creates sprite groups        
 bulletGroup = pygame.sprite.Group()
 cannonGroup = pygame.sprite.Group()        
