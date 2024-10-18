@@ -4,6 +4,7 @@
 
 import os
 import pygame, random, csv
+from pygame import mixer
 from settings import * 
 
 
@@ -59,6 +60,11 @@ itemDrops = {
 }
 
 font = pygame.font.SysFont('Times New Roman', 30)
+
+#music load in
+pygame.mixer.music.load('Music/Theme.mp3')
+pygame.mixer.music.play(-1, 0.0, 5000)
+
 
 def drawText(text, font, color, x, y):
     img = font.render(text, True, color)
