@@ -77,7 +77,7 @@ class World():
         self.obstacleList = []
     
     def processData(self, data):
-        #iterate through each value in level data
+        self.levelLength = len(data[0])
         for y, row in enumerate(data):
             for x, tile in enumerate(row):
                 if tile >= 0:
@@ -561,10 +561,11 @@ class Gunslinger(pygame.sprite.Sprite):
         
         #update scroll based on player. 
         if self.charType == 'Cowboy':
-            if self.rect.right > (SCREEN_WIDTH - SCROLLING_THRESHOLD) or self.rect.left < SCROLLING_THRESHOLD:
+            if (self.rect.right > (SCREEN_WIDTH - SCROLLING_THRESHOLD) and movingRight) or (self.rect.left < level_width - SCROLLING_THRESHOLD):
                 self.rect.x -= dx
                 screenScroll = -dx
-        
+            
+                
         return screenScroll;
     
     def shoot(self, int1 = X_ADJUST_BULLET, int2 = Y_ADJUST_BULLET):
@@ -710,6 +711,8 @@ with open(f'Levels/level{level}_data.csv', newline='') as csvfile:  # Fix applie
 
 world = World()
 player, healthbar = world.processData(worldData)
+# Calculate the level width based on the processed data
+level_width = world.levelLength * TILESIZE
 
 run = True
 while run:
