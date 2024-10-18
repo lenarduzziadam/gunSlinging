@@ -21,6 +21,7 @@ screenScroll = 0
 bgScroll = 0
 
 #LEVEL DEFINER
+startGame = False
 level = 1
 
 #moving/action booleans
@@ -62,8 +63,8 @@ itemDrops = {
 font = pygame.font.SysFont('Times New Roman', 30)
 
 #music load in
-pygame.mixer.music.load('Music/Theme.mp3')
-pygame.mixer.music.play(-1, 0.0, 5000)
+pygame.mixer.music.load('Music/Lone.mp3')
+pygame.mixer.music.play(-1, 0.0, 6000)
 
 
 def drawText(text, font, color, x, y):
@@ -725,58 +726,65 @@ while run:
     
     clock.tick()
     
-    drawBG()
+    if startGame == False:
+        #draw menu
+        screen.fill(GREEN)
+        pass
     
-    #draws world map
-    world.draw()
+    else:
     
-    healthbar.draw(player.health)
-    drawText(f'AMMO: {player.ammo}', font, WHITE, 10, 35)
-    
+        drawBG()
+        
+        #draws world map
+        world.draw()
+        
+        healthbar.draw(player.health)
+        drawText(f'AMMO: {player.ammo}', font, WHITE, 10, 35)
+        
 
-    player.update()
-    player.draw()
+        player.update()
+        player.draw()
+        
+        for enemy in enemyGroup:
+            enemy.ai()
+            enemy.update()
+            enemy.draw()
+        
+        #updates and draws groups
+        bulletGroup.update()
+        bulletGroup.draw(screen)
+        itemDropsGroup.update()
+        itemDropsGroup.draw(screen)
+        waterGroup.update()
+        decorationGroup.update()
+        exitGroup.update()
+        waterGroup.draw(screen)
+        exitGroup.draw(screen)
+        decorationGroup.draw(screen)
+        
     
-    for enemy in enemyGroup:
-        enemy.ai()
-        enemy.update()
-        enemy.draw()
-    
-    #updates and draws groups
-    bulletGroup.update()
-    bulletGroup.draw(screen)
-    itemDropsGroup.update()
-    itemDropsGroup.draw(screen)
-    waterGroup.update()
-    decorationGroup.update()
-    exitGroup.update()
-    waterGroup.draw(screen)
-    exitGroup.draw(screen)
-    decorationGroup.draw(screen)
-    
-   
-    #updates player actions
-    if player.alive:
-            
-        if player.inAir:
-            if shoot:
-                #TODO: Does not seem to run figure out why
-                player.updateActions(3)#3:Jumping shooting animation
-                player.shoot(X_ADJUST_BULLET, Y_ADJUST_BULLET)
-            else:
-                player.updateActions(2)
+        #updates player actions
+        if player.alive:
                 
-        elif shoot and not (movingLeft or movingRight):
-            player.updateActions(4)#4: standing/walking shooting animation
-            player.shoot(X_ADJUST_BULLET, Y_ADJUST_BULLET)  
-                  
-        elif movingLeft or movingRight:
-            player.updateActions(1)#1 : walk  
-             
-        else: 
-            player.updateActions(0)#0: idle)
-    
-        screenScroll = player.move(movingLeft, movingRight)
+            if player.inAir:
+                if shoot:
+                    #TODO: Does not seem to run figure out why
+                    player.updateActions(3)#3:Jumping shooting animation
+                    player.shoot(X_ADJUST_BULLET, Y_ADJUST_BULLET)
+                else:
+                    player.updateActions(2)
+                    
+            elif shoot and not (movingLeft or movingRight):
+                player.updateActions(4)#4: standing/walking shooting animation
+                player.shoot(X_ADJUST_BULLET, Y_ADJUST_BULLET)  
+                    
+            elif movingLeft or movingRight:
+                player.updateActions(1)#1 : walk  
+                
+            else: 
+                player.updateActions(0)#0: idle)
+        
+            screenScroll = player.move(movingLeft, movingRight)
 
     for event in pygame.event.get():
         #quitting game
