@@ -82,7 +82,20 @@ def drawBG():
     width = desertIMG.get_width()
     screen.blit(desertIMG, ((0, 0)))
 
-
+def resetLevel():
+    enemyGroup.empty()
+    bulletGroup.empty()
+    itemDropsGroup.empty()
+    decorationGroup.empty()
+    waterGroup.empty()
+    exitGroup.empty()
+    
+    #create empty tile list
+    emptyData = []
+    for row in range(ROWS):
+        r = [-1] * COLS
+        emptyData.append(r)
+        
 #class to define world and level layout
 class World():
     def __init__(self):
@@ -562,9 +575,15 @@ class Gunslinger(pygame.sprite.Sprite):
                     self.inAir = False
                     dy = tile[1].top - self.rect.bottom
                     
+        if pygame.sprite.spritecollide(self, waterGroup, False):
+            self.health -=1
+            
+        #checks if fell off map            
+        if self.rect.bottom > SCREEN_HEIGHT:
+            self.health -= 25
         
         #check if going off edge
-        if self.charType == 'Cowboy':
+        if self.charType == 'Cowboy' and self.alive:
             if self.rect.left + dx < 0 or self.rect.right + dx > SCREEN_WIDTH:
                 dx = 0    
             
@@ -572,7 +591,7 @@ class Gunslinger(pygame.sprite.Sprite):
         self.rect.y += dy
         
         #update scroll based on player. 
-        if self.charType == 'Cowboy':
+        if self.charType == 'Cowboy' and self.alive:
             if (self.rect.right > (SCREEN_WIDTH - SCROLLING_THRESHOLD) and movingRight) or (self.rect.left < level_width - SCROLLING_THRESHOLD):
                 self.rect.x -= dx
                 screenScroll = -dx
@@ -738,8 +757,11 @@ while run:
     if startGame == False:
         #draw menu
         screen.fill(GREEN)
-        pass
-    
+        
+        if startButton.draw(screen):
+            startGame = True
+        if exitButton.draw(screen):
+            run = False
     else:
     
         drawBG()
@@ -795,6 +817,21 @@ while run:
         
             screenScroll = player.move(movingLeft, movingRight)
 
+        else:
+            screenScroll = 0
+            if retryButton.draw(screen):
+                worldData = resetLevel()    
+                
+                # Loads level data to create world
+                with open(f'Levels/level{level}_data.csv', newline='') as csvfile:  # Fix applied here
+                    reader = csv.reader(csvfile, delimiter=',')
+                    for x, row in enumerate(reader):
+                        for y, tile in enumerate(row):
+                            worldData[x][y] = int(tile)
+            
+                world = World()
+                player, healthbar = world.processData(worldData)
+                        
     for event in pygame.event.get():
         #quitting game
         if event.type == pygame.QUIT:
