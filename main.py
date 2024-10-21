@@ -96,6 +96,8 @@ def resetLevel():
         r = [-1] * COLS
         emptyData.append(r)
         
+    return emptyData
+        
 #class to define world and level layout
 class World():
     def __init__(self):
@@ -577,6 +579,11 @@ class Gunslinger(pygame.sprite.Sprite):
                     
         if pygame.sprite.spritecollide(self, waterGroup, False):
             self.health -=1
+        
+        #exit behavior
+        levelComplete = False    
+        if pygame.sprite.spritecollide(self, exitGroup, False):
+            levelComplete = True
             
         #checks if fell off map            
         if self.rect.bottom > SCREEN_HEIGHT:
@@ -597,7 +604,7 @@ class Gunslinger(pygame.sprite.Sprite):
                 screenScroll = -dx
             
                 
-        return screenScroll;
+        return screenScroll, levelComplete;
     
     def shoot(self, int1 = X_ADJUST_BULLET, int2 = Y_ADJUST_BULLET):
         self.int1 = int1
@@ -815,8 +822,8 @@ while run:
             else: 
                 player.updateActions(0)#0: idle)
         
-            screenScroll = player.move(movingLeft, movingRight)
-
+            screenScroll, levelComplete = player.move(movingLeft, movingRight)
+        
         else:
             screenScroll = 0
             if retryButton.draw(screen):
