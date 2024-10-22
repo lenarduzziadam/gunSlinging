@@ -582,9 +582,10 @@ class Gunslinger(pygame.sprite.Sprite):
         
         #exit behavior
         levelComplete = False    
-        if pygame.sprite.spritecollide(self, exitGroup, False):
+        if self.charType == 'Cowboy' and pygame.sprite.spritecollide(self, exitGroup, False):
             levelComplete = True
-            
+        
+        print(levelComplete)    
         #checks if fell off map            
         if self.rect.bottom > SCREEN_HEIGHT:
             self.health -= 25
