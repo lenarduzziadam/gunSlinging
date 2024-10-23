@@ -584,8 +584,7 @@ class Gunslinger(pygame.sprite.Sprite):
         levelComplete = False    
         if self.charType == 'Cowboy' and pygame.sprite.spritecollide(self, exitGroup, False):
             levelComplete = True
-        
-        print(levelComplete)    
+          
         #checks if fell off map            
         if self.rect.bottom > SCREEN_HEIGHT:
             self.health -= 25
@@ -824,6 +823,22 @@ while run:
                 player.updateActions(0)#0: idle)
         
             screenScroll, levelComplete = player.move(movingLeft, movingRight)
+            
+            if levelComplete:
+                level += 1
+                worldData = resetLevel()
+                
+                if level <= MAXLEVELS:
+                    
+                    # Loads level data to create world
+                    with open(f'Levels/level{level}_data.csv', newline='') as csvfile:  # Fix applied here
+                        reader = csv.reader(csvfile, delimiter=',')
+                        for x, row in enumerate(reader):
+                            for y, tile in enumerate(row):
+                                worldData[x][y] = int(tile)
+                
+                    world = World()
+                    player, healthbar = world.processData(worldData)
         
         else:
             screenScroll = 0
