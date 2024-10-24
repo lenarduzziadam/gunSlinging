@@ -78,9 +78,16 @@ def drawText(text, font, color, x, y):
 
 #draws background
 def drawBG():
+    """
+    Draws the background of the game screen.
+    Fills the screen with a solid color and blits the desert image at (0, 0).
+    """
+    # Fills the screen with a solid black color
     screen.fill(BLACK)
+
+    # Blits the desert background image onto the screen
     width = desertIMG.get_width()
-    screen.blit(desertIMG, ((0, 0)))
+    screen.blit(desertIMG, (0, 0))
 
 def resetLevel():
     enemyGroup.empty()
@@ -437,6 +444,16 @@ class Bullet(pygame.sprite.Sprite):
                         self.kill()
             
 #Gunslinger player class
+    """
+    Represents a Gunslinger character in the game. Handles movement, actions, animations, and AI behaviors.
+
+    Attributes:
+    - charType (str): Type of character (e.g., 'Cowboy', 'Gangster').
+    - speed (int): Movement speed of the character.
+    - ammo (int): Amount of ammunition the character has.
+    - health (int): Current health of the character.
+    - maxHealth (int): Maximum health of the character.
+    """
 class Gunslinger(pygame.sprite.Sprite):
     def __init__(self, charType, x, y, scale, speed, ammo, health, balls = 0):
         pygame.sprite.Sprite.__init__(self)
@@ -529,6 +546,18 @@ class Gunslinger(pygame.sprite.Sprite):
                        
             
     def move(self, movingLeft, movingRight):
+        """
+        Handles the player's movement and scrolling within the level.
+
+        Parameters:
+        - movingLeft (bool): Whether the player is moving left.
+        - movingRight (bool): Whether the player is moving right.
+
+        Returns:
+        - screenScroll (int): The amount of screen scroll based on player movement.
+        - levelComplete (bool): Whether the player reached the exit or completed the level.
+        """
+    
         #resets movment variables
         screenScroll = 0
         dx = 0
