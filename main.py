@@ -68,9 +68,18 @@ itemDrops = {
 font = pygame.font.SysFont('Times New Roman', 30)
 
 #music load in
-pygame.mixer.music.load('Music/Lone.mp3')
+if level == 1:
+    pygame.mixer.music.load('Music/Lone.mp3')
+if level == 2:
+    pygame.mixer.music.load('Music/Leaf8bit.mp3')
 pygame.mixer.music.play(-1, 0.0, 6000)
+mixer.music.set_volume(0.3)
 
+shotP = pygame.mixer.Sound('shot.wav')
+shotE = pygame.mixer.Sound('shot.wav')
+
+shotP.set_volume(0.1)
+shotE.set_volume(0.05)
 
 def drawText(text, font, color, x, y):
     img = font.render(text, True, color)
@@ -612,7 +621,9 @@ class Gunslinger(pygame.sprite.Sprite):
         #exit behavior
         levelComplete = False    
         if self.charType == 'Cowboy' and pygame.sprite.spritecollide(self, exitGroup, False):
+            mixer.music.stop()
             levelComplete = True
+            mixer.music.play() 
           
         #checks if fell off map            
         if self.rect.bottom > SCREEN_HEIGHT:
@@ -658,6 +669,7 @@ class Gunslinger(pygame.sprite.Sprite):
             if self.vision.colliderect(player.rect) and player.alive:
                 self.updateActions(4)
                 self.shoot()
+                shotE.play()
                     
             elif self.idling == False:
                 if self.direction == 1:
@@ -843,7 +855,8 @@ while run:
                     
             elif shoot and not (movingLeft or movingRight):
                 player.updateActions(4)#4: standing/walking shooting animation
-                player.shoot(X_ADJUST_BULLET, Y_ADJUST_BULLET)  
+                player.shoot(X_ADJUST_BULLET, Y_ADJUST_BULLET) 
+                shotP.play()  
                     
             elif movingLeft or movingRight:
                 player.updateActions(1)#1 : walk  
