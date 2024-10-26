@@ -539,7 +539,7 @@ class Gunslinger(pygame.sprite.Sprite):
         self.mask = pygame.mask.from_surface(self.image)
         self.width, self.height = self.mask.get_size()
 
-        self.width = self.width * 3 // 5  # Adjusting width as needed
+        self.width = self.width * 3 // 6  # Adjusting width as needed
         self.height = self.height - 2      # Adjusting height as needed
         
     def update(self):
@@ -606,11 +606,11 @@ class Gunslinger(pygame.sprite.Sprite):
             #check for collision in y axis
             if tile[1].colliderect(self.rect.x, self.rect.y + dy, self.width, self.height):
                 #check if below ground
-                if self.velY < 0:
+                if self.velY <= 0:
                     self.velY = 0
                     dy = tile[1].bottom - self.rect.top
                     
-                elif self.velY >=0:
+                elif self.velY > 0:
                     self.velY = 0
                     self.inAir = False
                     dy = tile[1].top - self.rect.bottom
@@ -623,7 +623,8 @@ class Gunslinger(pygame.sprite.Sprite):
         if self.charType == 'Cowboy' and pygame.sprite.spritecollide(self, exitGroup, False):
             mixer.music.stop()
             levelComplete = True
-            mixer.music.play() 
+            mixer.music.load('Music/Leaf8Bit.mp3') 
+            mixer.music.play()
           
         #checks if fell off map            
         if self.rect.bottom > SCREEN_HEIGHT:

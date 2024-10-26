@@ -30,8 +30,8 @@ SCROLLING_THRESHOLD = 300  # Distance from screen edge at which scrolling begins
 # Scale Settings for Visual Elements
 # -----------------------
 BG_SCALE = 2.1  # Scale factor for background images
-PLAYER_SCALE = 1.5  # Scale factor for player sprites
-DEATH_SCALE = 0.55  # Scale factor for death animation
+PLAYER_SCALE = 1.4  # Scale factor for player sprites
+DEATH_SCALE = 0.50  # Scale factor for death animation
 HEALTH_SCALE = 1.8  # Scale factor for health icons
 AMMO_SCALE = 1.2  # Scale factor for ammo icons
 
