@@ -21,6 +21,7 @@ screenScroll = 0
 bgScroll = 0
 
 #LEVEL DEFINER
+startIntro = False
 startGame = False
 level = 1
 
@@ -763,6 +764,34 @@ class Gunslinger(pygame.sprite.Sprite):
         if display_mask:
             mask_surface = self.mask.to_surface(setcolor=(0, 255, 0), unsetcolor=(0, 0, 0))
             screen.blit(mask_surface, self.rect.topleft)
+            
+
+class ScreenTransition():
+    def __init__(self, direction, color, speed):
+        self.direction = direction
+        self.color = color
+        self.speed = speed
+        self.fadeCounter = 0
+    
+    
+    def fade(self):
+        completeFade = False
+        self.fadeCounter += self.speed
+        pygame.draw.rect(screen, self.color, (0, 0, SCREEN_WIDTH, 0 + self.fadeCounter))
+        
+        if self.direction == 1:
+            pygame.draw.rect(screen, self.color, (0 - self.fadeCounter, 0, SCREEN_WIDTH // 2, SCREEN_HEIGHT))
+        if self.direction == 2:
+            pygame.draw.rect(screen, self.color, (0, 0, SCREEN_WIDTH, 0 + self.fadeCounter))
+        if self.fadeCounter >= SCREEN_WIDTH:
+            completeFade = True
+        
+        return completeFade
+
+
+#screen transitions
+introFade = ScreenTransition(1, BLACK, 4)
+deathFade = ScreenTransition(2, RED, 4)
 
 #creating buttons
 startButton = button.Button(SBUTTONSIZES_X, SBUTTONSIZES_Y, startGameIMG, 1)    
@@ -809,6 +838,7 @@ while run:
         
         if startButton.draw(screen):
             startGame = True
+            startIntro = True
         if exitButton.draw(screen):
             run = False
     else:
@@ -842,7 +872,11 @@ while run:
         exitGroup.draw(screen)
         decorationGroup.draw(screen)
         
-    
+        if startIntro == True:
+            if introFade.fade():
+                startIntro = False
+                introFade.fadeCounter = 0
+                
         #updates player actions
         if player.alive:
                 
@@ -885,18 +919,23 @@ while run:
         
         else:
             screenScroll = 0
-            if retryButton.draw(screen):
-                worldData = resetLevel()    
+            if deathFade.fade():
                 
-                # Loads level data to create world
-                with open(f'Levels/level{level}_data.csv', newline='') as csvfile:  # Fix applied here
-                    reader = csv.reader(csvfile, delimiter=',')
-                    for x, row in enumerate(reader):
-                        for y, tile in enumerate(row):
-                            worldData[x][y] = int(tile)
             
-                world = World()
-                player, healthbar = world.processData(worldData)
+                if retryButton.draw(screen):
+                    deathFade.fadeCounter = 0
+                    startIntro = True
+                    worldData = resetLevel()    
+                    
+                    # Loads level data to create world
+                    with open(f'Levels/level{level}_data.csv', newline='') as csvfile:  # Fix applied here
+                        reader = csv.reader(csvfile, delimiter=',')
+                        for x, row in enumerate(reader):
+                            for y, tile in enumerate(row):
+                                worldData[x][y] = int(tile)
+                
+                    world = World()
+                    player, healthbar = world.processData(worldData)
                         
     for event in pygame.event.get():
         #quitting game
