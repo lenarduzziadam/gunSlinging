@@ -541,7 +541,7 @@ class Gunslinger(pygame.sprite.Sprite):
         self.width, self.height = self.mask.get_size()
 
         self.width = self.width * 3 // 6  # Adjusting width as needed
-        self.height = self.height - 2      # Adjusting height as needed
+        self.height = self.height - 1      # Adjusting height as needed
         
     def update(self):
         self.updateAnimations()
@@ -605,16 +605,20 @@ class Gunslinger(pygame.sprite.Sprite):
                 dx = 0
             
             #check for collision in y axis
-            if tile[1].colliderect(self.rect.x, self.rect.y + dy, self.width, self.height):
+            if tile[1].colliderect(self.rect.x, self.rect.y + dy, self.width, self.height - 2):
+                print(f"Height {self.height} Widith: {self.width}")
+                print(f"Tile Bot: {tile[1].bottom} TIle TOp; {tile[1].top}")
                 #check if below ground
                 if self.velY <= 0:
                     self.velY = 0
-                    dy = tile[1].bottom - self.rect.top
+                    dy = tile[1].bottom - (self.rect.top - 2)
+                    print(f"top COLIS:  {dy}")
                     
                 elif self.velY > 0:
                     self.velY = 0
                     self.inAir = False
                     dy = tile[1].top - self.rect.bottom
+                    print( f" Bottoms colis: {dy}")
                     
         if pygame.sprite.spritecollide(self, waterGroup, False):
             self.health -=1
